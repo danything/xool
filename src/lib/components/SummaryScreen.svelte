@@ -119,9 +119,12 @@ async function toggleSummary(event: Event) {
 			<ErrorAlert>前回の自動ポスト: {summary.lastError}</ErrorAlert>
 		{/if}
 		{#await keyInfo}
-			<div class="skeleton h-8 w-full mt-8 mb-3"></div>
-			<div class="skeleton h-24 w-full mt-7 mb-7"></div>
-			<div class="skeleton h-8 w-full mt-8 mb-3"></div>
+			<!-- Shaped like what replaces it: a short heading, a full-width table,
+			     and one line of small print. Full-width bars for all three made
+			     the page jump when the real thing arrived. -->
+			<div class="skeleton h-8 w-40 mt-6 mb-2"></div>
+			<div class="skeleton h-24 w-full"></div>
+			<div class="skeleton h-5 w-2/3 mt-3"></div>
 		{:then ret}
 			{#if ret?.error}
 				<ErrorAlert>{ret.error}</ErrorAlert>
