@@ -48,6 +48,23 @@ export function setEnabled(userKey: string, enabled: boolean) {
 	);
 }
 
+/**
+ * Notes what x.com just charged for. Reads are billed per post returned
+ * whether or not anything is posted about them, so this is recorded on the way
+ * out of every successful fetch, not only the ones that led to a summary.
+ */
+function recordSpend(
+	userKey: string,
+	reads: number,
+	posted: boolean,
+	impressions: number,
+) {
+	db().run(
+		"INSERT INTO spend (userKey, at, reads, posts, impressions) VALUES (?, ?, ?, ?, ?)",
+		[userKey, Date.now(), reads, posted ? 1 : 0, impressions],
+	);
+}
+
 const numberFormat = new Intl.NumberFormat("ja-JP");
 const n = (value: number) => numberFormat.format(value);
 
@@ -192,6 +209,7 @@ async function postSummary(
 				record(true);
 			}
 		}
+		recordSpend(row.userKey, all.length, posted, impressions);
 	}
 
 	// The date is recorded whether or not it worked, so a failure costs one
@@ -244,6 +262,10 @@ export async function postToday(userKey: string, now = Date.now()) {
 		lastError = `𝕏がポストの取得を拒否しました (${status})`;
 	} else {
 		const posts: OwnPost[] = ret?.data ?? [];
+		const impressions = posts.reduce(
+			(sum, post) => sum + (post.non_public_metrics?.impression_count ?? 0),
+			0,
+		);
 		const result = await autoAction("tweet", userKey, {
 			text: summaryText(date, posts, { partial: true }),
 		});
@@ -255,6 +277,7 @@ export async function postToday(userKey: string, now = Date.now()) {
 			lastPostId = result?.data?.id ?? null;
 			posted = true;
 		}
+		recordSpend(userKey, posts.length, posted, impressions);
 	}
 
 	// Deliberately not today: today is not over, and nothing is written to

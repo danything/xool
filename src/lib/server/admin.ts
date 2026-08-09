@@ -77,6 +77,9 @@ export function summaryAdmin(): SummaryAdmin {
 		`)
 		.all();
 
+	// Billed activity, by the JST day it happened on -- not by the day a summary
+	// was about. A manual post is charged today for yesterday, and summaryDay
+	// never hears about it at all.
 	const rows = db()
 		.query<
 			{
@@ -88,12 +91,12 @@ export function summaryAdmin(): SummaryAdmin {
 			},
 			[]
 		>(`
-			SELECT date,
-			       COUNT(*) AS users,
-			       SUM(posts) AS posts,
-			       SUM(posted) AS posted,
+			SELECT date(at / 1000, 'unixepoch', '+9 hours') AS date,
+			       COUNT(DISTINCT userKey) AS users,
+			       SUM(reads) AS posts,
+			       SUM(posts) AS posted,
 			       SUM(impressions) AS impressions
-			FROM summaryDay GROUP BY date ORDER BY date DESC LIMIT 30
+			FROM spend GROUP BY date ORDER BY date DESC LIMIT 30
 		`)
 		.all();
 

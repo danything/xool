@@ -27,7 +27,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 				<div class="stat-value">{number.format(data.summary.enabled)}</div>
 			</div>
 			<div class="stat">
-				<div class="stat-title">𝕏への支払い (記録分の合計)</div>
+				<div class="stat-title">𝕏への支払い (推定)</div>
 				<div class="stat-value">{money.format(data.summary.cost)}</div>
 			</div>
 		</div>
@@ -63,7 +63,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 					<tr>
 						<th scope="col">日付</th>
 						<th scope="col">対象</th>
-						<th scope="col">読んだポスト</th>
+						<th scope="col">読み取り</th>
 						<th scope="col">投稿</th>
 						<th scope="col">インプレッション</th>
 						<th scope="col">費用</th>

@@ -83,6 +83,20 @@ export default function db(): DatabaseType {
 	// about which day has been dealt with, which is not the same question and
 	// made a poor thing to show someone.
 	addColumn(instance, "summary", "lastPostedAt", "INTEGER");
+	// What x.com was actually billed for, as it happens. Cost used to be derived
+	// from summaryDay, which only records days that were summarised -- a manual
+	// or first-run post is neither, and cost money nobody could see.
+	instance.run(`
+		CREATE TABLE IF NOT EXISTS spend (
+			id INTEGER PRIMARY KEY AUTOINCREMENT,
+			userKey TEXT NOT NULL,
+			at INTEGER NOT NULL,
+			reads INTEGER NOT NULL,
+			posts INTEGER NOT NULL,
+			impressions INTEGER NOT NULL
+		)
+	`);
+	instance.run("CREATE INDEX IF NOT EXISTS spend_at ON spend(at)");
 	// The metrics page is gone and so are the tables it filled. This runs on
 	// every boot because there is no migration runner to run it once; both
 	// statements are no-ops on a database that has already seen them.
