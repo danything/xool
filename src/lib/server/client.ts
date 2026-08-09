@@ -55,16 +55,32 @@ export async function client(
 					Authorization: `Bearer ${bearer}`,
 				};
 
-	const res = await fetch(`https://api.x.com/2/${url}`, {
-		method,
-		headers,
-		body,
-		cache: "no-store",
-		// Without a deadline a call that never answers leaves whoever awaited it
-		// waiting forever -- on the top page that is a skeleton that never turns
-		// into anything.
-		signal: AbortSignal.timeout(15000),
-	});
+	// One line per call to x.com. Without it a page stuck on its loading state
+	// is indistinguishable from a call that never came back, and the only way
+	// to tell them apart was to guess.
+	const startedAt = Date.now();
+	const log = (outcome: string) =>
+		console.log(
+			`x.com ${method} ${url.split("?")[0]} ${outcome} in ${Date.now() - startedAt}ms`,
+		);
+
+	let res: Response;
+	try {
+		res = await fetch(`https://api.x.com/2/${url}`, {
+			method,
+			headers,
+			body,
+			cache: "no-store",
+			// Without a deadline a call that never answers leaves whoever awaited it
+			// waiting forever -- on the top page that is a skeleton that never turns
+			// into anything.
+			signal: AbortSignal.timeout(15000),
+		});
+	} catch (error) {
+		log(error instanceof Error ? error.name : "failed");
+		throw error;
+	}
+	log(String(res.status));
 
 	// Callers need the throttling window to decide when a rejected request may
 	// be retried, and x.com only reports it in the response headers.
