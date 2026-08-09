@@ -78,9 +78,6 @@ async function toggleSummary(event: Event) {
 </script>
 
 <div class="mx-auto p-4 prose">
-	<p>
-		前日のポストの成績を毎日0:00にまとめて自動ポストする、ポスト通信簿です
-	</p>
 	{#if message !== undefined}
 		<ErrorAlert>{message}</ErrorAlert>
 	{:else if wkey !== undefined && keyInfo}
@@ -129,7 +126,7 @@ async function toggleSummary(event: Event) {
 			{#if ret?.error}
 				<ErrorAlert>{ret.error}</ErrorAlert>
 			{:else}
-				<h3 class="mb-2">現在のアカウント</h3>
+				<h3 class="mt-6 mb-2">現在のアカウント</h3>
 				{#if ret?.status === 429}
 					<div role="alert" class="alert alert-warning">
 						<svg
@@ -182,15 +179,10 @@ async function toggleSummary(event: Event) {
 		{/await}
 	{/if}
 	<SignInButton />
-	<h3>運営費について</h3>
-	<p>
-		𝕏はAPIを従量課金にしたため、ポスト1件ごとに費用がかかります。
-		<br />
-		サマリーの自動ポストは1日1件で <strong>$0.015</strong>、集計のための読み取りが
-		1ポストあたり <strong>$0.001</strong> で、これは運営者が負担しています。
-	</p>
-	<p>
-		支えていただける方は
+	<h3 class="mt-6 mb-2">運営費について</h3>
+	<p class="my-0">
+		𝕏のAPIが従量課金のため、自動ポスト1件につき <strong>$0.015</strong>、集計の読み取りに1ポストあたり
+		<strong>$0.001</strong> かかり、運営者が負担しています。支えていただける方は
 		<a
 			class="link link-primary"
 			target="_blank"
@@ -199,17 +191,15 @@ async function toggleSummary(event: Event) {
 		>
 			Ko-fi
 		</a>
-		からお願いします。
+		へ。
 	</p>
-	<h3>プライバシー</h3>
-	<p>
-		𝕏との連携にあたってUser ID, Access Token, Refresh
-		Tokenのみをサーバに保存しております。
-		<br />
-		そのほかのユーザー情報の取得は一切行っておりませんので、ご安心ください。
+	<h3 class="mt-6 mb-2">プライバシー</h3>
+	<p class="my-0">
+		サーバに保存するのはUser ID・Access Token・Refresh
+		Tokenのみで、そのほかのユーザー情報は一切取得していません。
 	</p>
-	<p>
-		不具合などの報告は
+	<p class="mt-3 mb-0 text-sm opacity-60">
+		不具合の報告は
 		<a
 			class="link link-primary"
 			target="_blank"
@@ -218,14 +208,14 @@ async function toggleSummary(event: Event) {
 		>
 			@5yuim
 		</a>
-		へ
+		へ ・
+		<a
+			class="link link-primary"
+			target="_blank"
+			href="https://github.com/DAnything/xool"
+			rel="noreferrer"
+		>
+			ソースコード
+		</a>
 	</p>
-	<a
-		class="link link-primary"
-		target="_blank"
-		href="https://github.com/DAnything/xool"
-		rel="noreferrer"
-	>
-		ソースコード
-	</a>
 </div>
