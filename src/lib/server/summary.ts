@@ -17,6 +17,11 @@ function addDays(date: string, days: number): string {
 		.slice(0, 10);
 }
 
+/** An instant in the shape x.com wants for start_time and end_time. */
+function isoSeconds(at: number): string {
+	return new Date(at).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 /** Midnight JST at the start of a date, as the UTC instant x.com asks for. */
 function jstMidnight(date: string): string {
 	return new Date(Date.parse(`${date}T00:00:00Z`) - JST_OFFSET_MS)
@@ -69,11 +74,13 @@ function streakEndingOn(userKey: string, date: string): number {
 export function summaryText(
 	date: string,
 	posts: OwnPost[],
-	previous?: SummaryDay,
-	streak = 0,
+	options: { previous?: SummaryDay; streak?: number; partial?: boolean } = {},
 ): string {
+	const { previous, streak = 0, partial = false } = options;
 	const [, month, day] = date.split("-");
-	const heading = `${Number(month)}月${Number(day)}日のポスト: ${posts.length}件`;
+	const heading = partial
+		? `${Number(month)}月${Number(day)}日のポスト (0:00〜現在): ${posts.length}件`
+		: `${Number(month)}月${Number(day)}日のポスト: ${posts.length}件`;
 	// Reaction lines full of zeroes say nothing about a day nobody posted on.
 	if (posts.length === 0) return [heading, "", "#ポスト通信簿"].join("\n");
 
@@ -94,7 +101,7 @@ export function summaryText(
 	);
 
 	const diff =
-		previous === undefined
+		previous === undefined || partial
 			? ""
 			: ` (前日比 ${signed(posts.length - previous.posts)})`;
 	// A line whose numbers are all zero says nothing, and every one of them
@@ -170,12 +177,10 @@ async function postSummary(
 		// answer whether or not it is technically correct.
 		if (posts.length > 0 || force) {
 			const result = await autoAction("tweet", row.userKey, {
-				text: summaryText(
-					date,
-					posts,
-					previous ?? undefined,
-					streakEndingOn(row.userKey, date),
-				),
+				text: summaryText(date, posts, {
+					previous: previous ?? undefined,
+					streak: streakEndingOn(row.userKey, date),
+				}),
 			});
 			if (result?.error !== undefined) {
 				lastError = result.error;
@@ -194,6 +199,63 @@ async function postSummary(
 	db().run(
 		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastError = ? WHERE userKey = ?",
 		[date, lastPostId, lastError, row.userKey],
+	);
+	return posted;
+}
+
+/**
+ * Posts what today looks like so far, for someone who has just switched this
+ * on. The day it would otherwise report closed before the tool was watching,
+ * so there is nothing to say about it; today has whatever there is.
+ *
+ * Yesterday is marked as handled either way, so the timer does not follow this
+ * up with a second post, and tonight's midnight run still reports today in
+ * full -- with this post itself excluded from the count.
+ */
+export async function postToday(userKey: string, now = Date.now()) {
+	const row = getSummary(userKey);
+	const user = db()
+		.query<User, [string]>("SELECT * FROM user WHERE key = ?")
+		.get(userKey);
+	if (row === null || user === null) return false;
+
+	const date = jstDate(now);
+	let lastError: string | null = null;
+	let lastPostId: string | null = row.lastPostId;
+	let posted = false;
+
+	const ret = await autoAction("ownPosts", userKey, {
+		id: user.socialId,
+		startTime: jstMidnight(date),
+		// x.com rejects an end_time that is not comfortably in the past.
+		endTime: isoSeconds(now - 60_000),
+	});
+	const status = ret?.rateLimit?.httpStatus;
+
+	if (ret?.error !== undefined) {
+		lastError = ret.error;
+	} else if (status !== undefined && status >= 400) {
+		lastError = `𝕏がポストの取得を拒否しました (${status})`;
+	} else {
+		const posts: OwnPost[] = ret?.data ?? [];
+		const result = await autoAction("tweet", userKey, {
+			text: summaryText(date, posts, { partial: true }),
+		});
+		if (result?.error !== undefined) {
+			lastError = result.error;
+		} else if (result?.rateLimit?.httpStatus >= 400) {
+			lastError = `𝕏がポストを拒否しました (${result.rateLimit.httpStatus})`;
+		} else {
+			lastPostId = result?.data?.id ?? null;
+			posted = true;
+		}
+	}
+
+	// Deliberately not today: today is not over, and nothing is written to
+	// summaryDay for a part of a day that tonight's run will count properly.
+	db().run(
+		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastError = ? WHERE userKey = ?",
+		[addDays(date, -1), lastPostId, lastError, userKey],
 	);
 	return posted;
 }

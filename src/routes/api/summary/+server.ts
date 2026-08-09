@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import { getSummary, postDueSummaries, setEnabled } from "$lib/server/summary";
+import { getSummary, postToday, setEnabled } from "$lib/server/summary";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
@@ -12,15 +12,17 @@ export const POST: RequestHandler = async ({ request, cookies }) => {
 		return json({ error: "enabledを指定してください" }, { status: 400 });
 	}
 
+	// Only the very first enable posts on the spot, and it reports today so far
+	// rather than a day that ended before anyone was watching. Toggling off and
+	// on again later does not repost -- that first run recorded a date.
+	const first = getSummary(userKey)?.lastSummarizedOn == null;
 	setEnabled(userKey, enabled);
-	// Post the first one now rather than at the next midnight, so switching this
-	// on shows you what it does.
-	const posted = enabled ? await postDueSummaries(userKey) : 0;
+	const posted = enabled && first ? await postToday(userKey) : false;
 
 	const summary = getSummary(userKey);
 	return json({
 		enabled: summary?.enabled === 1,
-		posted: posted > 0,
+		posted,
 		error: summary?.lastError ?? undefined,
 	});
 };

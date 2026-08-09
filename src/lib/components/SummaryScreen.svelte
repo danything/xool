@@ -39,7 +39,7 @@ async function toggleSummary(event: Event) {
 			!enabled
 				? "自動ポストをOFFにしました"
 				: ret.posted
-					? "前日分を投稿しました"
+					? "現在までの分を投稿しました"
 					: "ONにしました (次回の0:00から投稿します)",
 		);
 	} catch (error) {
@@ -71,7 +71,7 @@ async function toggleSummary(event: Event) {
 			<span>毎日 0:00 (JST) に前日のポストをまとめて自動ポストする</span>
 		</label>
 		<p class="text-sm opacity-60">
-			ONにすると前日分をすぐ投稿します。
+			初めてONにしたときは、その時点までの当日分をすぐ投稿します。
 			<br />
 			ポストが1件もなかった日は投稿しません。リポストは数に含めません。
 			{#if summary?.lastSummarizedOn}
