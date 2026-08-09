@@ -97,6 +97,9 @@ export default function db(): DatabaseType {
 		)
 	`);
 	instance.run("CREATE INDEX IF NOT EXISTS spend_at ON spend(at)");
+	// Account lookups are billed at a different rate from post reads, so they
+	// are counted separately rather than folded in.
+	addColumn(instance, "spend", "userReads", "INTEGER NOT NULL DEFAULT 0");
 	// The metrics page is gone and so are the tables it filled. This runs on
 	// every boot because there is no migration runner to run it once; both
 	// statements are no-ops on a database that has already seen them.

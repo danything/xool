@@ -1,5 +1,6 @@
 import db from "./db";
 import type { User } from "./model";
+import { recordUserRead } from "./spend";
 
 export type RateLimit = {
 	httpStatus: number;
@@ -135,6 +136,9 @@ export async function autoAction(
 		return { error: "keyが無効です再ログインしてください" };
 	let accessToken = existUser.accessToken;
 	const ret = await action(type, accessToken, payload);
+	// The account lookup costs money like everything else here, and it runs on
+	// every visit to the top page.
+	if (type === "me" && ret?.rateLimit?.httpStatus === 200) recordUserRead(key);
 	if (ret?.status !== 401) return ret;
 	const refreshedToken = await refreshToken(existUser.refreshToken);
 	// Only invalid_request used to be treated as "sign in again", but x.com has

@@ -64,6 +64,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 						<th scope="col">日付</th>
 						<th scope="col">対象</th>
 						<th scope="col">読み取り</th>
+						<th scope="col">アカウント参照</th>
 						<th scope="col">投稿</th>
 						<th scope="col">インプレッション</th>
 						<th scope="col">費用</th>
@@ -75,12 +76,13 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 							<td>{day.date}</td>
 							<td>{number.format(day.users)}</td>
 							<td>{number.format(day.posts)}</td>
+							<td>{number.format(day.userReads)}</td>
 							<td>{number.format(day.posted)}</td>
 							<td>{number.format(day.impressions)}</td>
 							<td>{money.format(day.cost)}</td>
 						</tr>
 					{:else}
-						<tr><td colspan="6">まだ記録がありません</td></tr>
+						<tr><td colspan="7">まだ記録がありません</td></tr>
 					{/each}
 				</tbody>
 			</table>

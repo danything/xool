@@ -1,6 +1,7 @@
 import { autoAction, type OwnPost } from "./client";
 import db from "./db";
 import type { Summary, SummaryDay, User } from "./model";
+import { recordSpend } from "./spend";
 
 // Everything here is reckoned in JST: the day a summary covers is the day the
 // person posting it lived through, not the one UTC happened to be on.
@@ -45,23 +46,6 @@ export function setEnabled(userKey: string, enabled: boolean) {
 		`INSERT INTO summary (userKey, enabled) VALUES (?, ?)
 		 ON CONFLICT(userKey) DO UPDATE SET enabled = excluded.enabled, lastError = NULL`,
 		[userKey, enabled ? 1 : 0],
-	);
-}
-
-/**
- * Notes what x.com just charged for. Reads are billed per post returned
- * whether or not anything is posted about them, so this is recorded on the way
- * out of every successful fetch, not only the ones that led to a summary.
- */
-function recordSpend(
-	userKey: string,
-	reads: number,
-	posted: boolean,
-	impressions: number,
-) {
-	db().run(
-		"INSERT INTO spend (userKey, at, reads, posts, impressions) VALUES (?, ?, ?, ?, ?)",
-		[userKey, Date.now(), reads, posted ? 1 : 0, impressions],
 	);
 }
 
@@ -209,7 +193,11 @@ async function postSummary(
 				record(true);
 			}
 		}
-		recordSpend(row.userKey, all.length, posted, impressions);
+		recordSpend(row.userKey, {
+			reads: all.length,
+			posts: posted ? 1 : 0,
+			impressions,
+		});
 	}
 
 	// The date is recorded whether or not it worked, so a failure costs one
@@ -277,7 +265,11 @@ export async function postToday(userKey: string, now = Date.now()) {
 			lastPostId = result?.data?.id ?? null;
 			posted = true;
 		}
-		recordSpend(userKey, posts.length, posted, impressions);
+		recordSpend(userKey, {
+			reads: posts.length,
+			posts: posted ? 1 : 0,
+			impressions,
+		});
 	}
 
 	// Deliberately not today: today is not over, and nothing is written to

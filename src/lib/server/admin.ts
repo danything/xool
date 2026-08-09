@@ -6,6 +6,10 @@ import type { GhUser, User } from "./model";
 // day; a summary carries no URL, so it is the plain post price.
 const READ_COST = 0.001;
 const POST_COST = 0.015;
+// x.com prices reads of your own data at $0.001 and other users at $0.010.
+// users/me is your own record, so it is counted at the owned rate; the
+// developer console is the authority if that turns out to be generous.
+const USER_READ_COST = 0.001;
 
 const names = (value: string | undefined) =>
 	(value ?? "")
@@ -47,6 +51,7 @@ export type SummaryAdmin = {
 		date: string;
 		users: number;
 		posts: number;
+		userReads: number;
 		posted: number;
 		impressions: number;
 		cost: number;
@@ -86,6 +91,7 @@ export function summaryAdmin(): SummaryAdmin {
 				date: string;
 				users: number;
 				posts: number;
+				userReads: number;
 				posted: number;
 				impressions: number;
 			},
@@ -94,6 +100,7 @@ export function summaryAdmin(): SummaryAdmin {
 			SELECT date(at / 1000, 'unixepoch', '+9 hours') AS date,
 			       COUNT(DISTINCT userKey) AS users,
 			       SUM(reads) AS posts,
+			       SUM(userReads) AS userReads,
 			       SUM(posts) AS posted,
 			       SUM(impressions) AS impressions
 			FROM spend GROUP BY date ORDER BY date DESC LIMIT 30
@@ -102,7 +109,10 @@ export function summaryAdmin(): SummaryAdmin {
 
 	const days = rows.map((row) => ({
 		...row,
-		cost: row.posts * READ_COST + row.posted * POST_COST,
+		cost:
+			row.posts * READ_COST +
+			row.userReads * USER_READ_COST +
+			row.posted * POST_COST,
 	}));
 
 	return {
