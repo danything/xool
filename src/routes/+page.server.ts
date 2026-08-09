@@ -50,6 +50,13 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			lastPostedAt: summary?.lastPostedAt ?? undefined,
 			lastError: summary?.lastError ?? undefined,
 		},
-		keyInfo: autoAction("me", wkey),
+		// Resolved here rather than streamed to the browser. The call takes about
+		// 150ms, and a streamed promise only ever lands if the page hydrates --
+		// which it does not during a rollout, when the HTML and the chunks it
+		// asks for can come from two different pods and one of them 404s. The
+		// account panel then sat on its loading skeleton forever.
+		keyInfo: await autoAction("me", wkey).catch(() => ({
+			error: "アカウント情報を取得できませんでした",
+		})),
 	};
 };

@@ -12,11 +12,11 @@ type Props = {
 		lastPostedAt?: number;
 		lastError?: string;
 	};
-	keyInfo?: Promise<{
+	keyInfo?: {
 		status?: number;
 		error?: string;
 		data?: { id?: string | number; name?: string; username?: string };
-	}>;
+	};
 };
 
 let { message, wkey, summary, keyInfo }: Props = $props();
@@ -118,14 +118,7 @@ async function toggleSummary(event: Event) {
 		{#if summary?.lastError}
 			<ErrorAlert>前回の自動ポスト: {summary.lastError}</ErrorAlert>
 		{/if}
-		{#await keyInfo}
-			<!-- Shaped like what replaces it: a short heading, a full-width table,
-			     and one line of small print. Full-width bars for all three made
-			     the page jump when the real thing arrived. -->
-			<div class="skeleton h-8 w-40 mt-6 mb-2"></div>
-			<div class="skeleton h-24 w-full"></div>
-			<div class="skeleton h-5 w-2/3 mt-3"></div>
-		{:then ret}
+		{@const ret = keyInfo}
 			{#if ret?.error}
 				<ErrorAlert>{ret.error}</ErrorAlert>
 			{:else}
@@ -172,14 +165,7 @@ async function toggleSummary(event: Event) {
 					別のアカウントを使用する場合は下記で認証画面内でアカウント選択できます
 				</p>
 			{/if}
-		{:catch error}
-			<!-- Without this branch Svelte leaves the skeleton above on screen when
-			     the promise rejects, so a failed lookup looks like one still
-			     loading and never resolves. -->
-			<ErrorAlert>
-				アカウント情報を取得できませんでした: {error.message}
-			</ErrorAlert>
-		{/await}
+
 	{/if}
 	<SignInButton />
 	<h3 class="mt-6 mb-2">運営費について</h3>
