@@ -16,7 +16,9 @@ if (!building) {
 			console.error("daily summary failed", error),
 		);
 	tick();
-	setInterval(tick, CHECK_INTERVAL_MS);
+	// Unreferenced so it never keeps a shutting-down process alive; it still
+	// fires for as long as the server is up.
+	setInterval(tick, CHECK_INTERVAL_MS).unref();
 }
 
 const LGTM_ONLY = ["/lgtm", "/api/gh"];

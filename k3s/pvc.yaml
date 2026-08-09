@@ -27,3 +27,20 @@ spec:
   resources:
     requests:
       storage: 5Gi
+---
+# Hashed assets from every build that has run, shared by both pods so a
+# rollout cannot serve HTML from one and 404 its chunks on the other.
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: xool-assets
+  namespace: xool
+  annotations:
+    argocd.argoproj.io/sync-options: Prune=false,Delete=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path-retain
+  resources:
+    requests:
+      storage: 1Gi

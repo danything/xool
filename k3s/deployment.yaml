@@ -113,6 +113,8 @@ spec:
               mountPath: /usr/src/app/images
             - name: xool-db
               mountPath: /usr/src/app/data
+            - name: xool-assets
+              mountPath: /usr/src/app/build/client/_app/immutable
       volumes:
         - name: xool-images
           persistentVolumeClaim:
@@ -120,3 +122,6 @@ spec:
         - name: xool-db
           persistentVolumeClaim:
             claimName: xool-db
+        - name: xool-assets
+          persistentVolumeClaim:
+            claimName: xool-assets
