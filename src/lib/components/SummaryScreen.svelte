@@ -60,7 +60,6 @@ async function toggleSummary(event: Event) {
 	{#if message !== undefined}
 		<ErrorAlert>{message}</ErrorAlert>
 	{:else if wkey !== undefined && keyInfo}
-		<h3>ポスト通信簿</h3>
 		<label class="flex items-center gap-3 not-prose">
 			<input
 				type="checkbox"
@@ -112,7 +111,7 @@ async function toggleSummary(event: Event) {
 					</div>
 				{:else}
 					<div class="overflow-x-auto not-prose">
-						<table class="table table-sm">
+						<table class="table text-base">
 							<thead>
 								<tr>
 									<th scope="col">ID</th>
