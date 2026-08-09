@@ -1,20 +1,58 @@
-@import "@fontsource/biz-udpgothic/japanese-400.css";
-@import "@fontsource/biz-udpgothic/japanese-700.css";
-@import "@fontsource/biz-udpmincho/japanese-400.css";
-@import "@fontsource/biz-udpmincho/japanese-700.css";
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 @plugin "daisyui";
 
-@theme {
-	--font-sans: "BIZ UDPGothic", sans-serif;
-	--font-serif: "BIZ UDPMincho", serif;
-	--font-mono: MesloLGS NF;
+/* Written out rather than imported from @fontsource so that `local()` comes
+   first: BIZ UDPGothic ships with Windows as a Japanese supplemental font, and
+   an installed copy costs nothing and is there on the first paint. The
+   download is only for everyone else, and it is 1.3MB a family. */
+@font-face {
+	font-family: "BIZ UDPGothic";
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src:
+		local("BIZ UDPGothic"),
+		local("BIZUDPGothic-Regular"),
+		url("@fontsource/biz-udpgothic/files/biz-udpgothic-japanese-400-normal.woff2")
+		format("woff2");
 }
 
-/* Keeps the header aligned with the body copy, which `prose` caps at 65ch. */
+/* Only the names carrying "Bold": a bare family name here would match the
+   regular face on browsers that resolve local() by family. */
+@font-face {
+	font-family: "BIZ UDPGothic";
+	font-style: normal;
+	font-weight: 700;
+	font-display: swap;
+	src:
+		local("BIZ UDPGothic Bold"),
+		local("BIZUDPGothic-Bold"),
+		url("@fontsource/biz-udpgothic/files/biz-udpgothic-japanese-700-normal.woff2")
+		format("woff2");
+}
+
+@theme {
+	--font-sans: "BIZ UDPGothic", sans-serif;
+	--font-mono: MesloLGS NF;
+
+	/* What `prose`'s own 65ch works out to once BIZ UDPGothic is loaded, frozen
+	   into a length that does not depend on the font. `ch` is the width of the
+	   font's `0`, and this one's is 0.76em against roughly 0.56em for the
+	   fallback sans-serif -- so a 65ch column is drawn ~210px too narrow until
+	   the 1.3MB Japanese subset arrives, then jumps. */
+	--page-width: 49.5rem;
+}
+
+/* Keeps the header aligned with the body copy. */
 @utility page-container {
 	width: 100%;
-	max-width: 65ch;
+	max-width: var(--page-width);
 	margin-inline: auto;
+}
+
+/* Unlayered, so it beats the typography plugin's own `max-width` without
+   having to out-specify it. */
+.prose {
+	max-width: var(--page-width);
 }

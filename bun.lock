@@ -10,7 +10,6 @@
       "devDependencies": {
         "@biomejs/biome": "^2.5.5",
         "@fontsource/biz-udpgothic": "^5.3.0",
-        "@fontsource/biz-udpmincho": "^5.3.0",
         "@sveltejs/adapter-node": "^5.5.7",
         "@sveltejs/kit": "^2.63.0",
         "@sveltejs/vite-plugin-svelte": "^7.1.2",
@@ -58,8 +57,6 @@
     "@emnapi/wasi-threads": ["@emnapi/wasi-threads@1.2.2", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-c95qOXkHdydNKhscBTebqEC1CVAZpyqOfVfBzQ1qgzyl3gfeldUjIggDbIZgDKsHLgnsM+igH7TJ/eAasaVuMA=="],
 
     "@fontsource/biz-udpgothic": ["@fontsource/biz-udpgothic@5.3.0", "", {}, "sha512-uBcdaC2/Bg7GEhzWSb2REs8azL1ys+KpI8TmPnJa2xtaD8DVMgsRbtIcEss8xjN5KRtp8E0+LFbG43FhkWZdPw=="],
-
-    "@fontsource/biz-udpmincho": ["@fontsource/biz-udpmincho@5.3.0", "", {}, "sha512-b4KPfzdFF4iEJss8S9nVZEvJS1eioAW9/RpYIOxjlJNW3tvJe7R2iWp4+ZGwL988Bu7q4OvfDfQz6AbioVovwg=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
