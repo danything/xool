@@ -197,8 +197,14 @@ async function postSummary(
 	// The date is recorded whether or not it worked, so a failure costs one
 	// attempt rather than one every time the timer fires.
 	db().run(
-		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastError = ? WHERE userKey = ?",
-		[date, lastPostId, lastError, row.userKey],
+		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
+		[
+			date,
+			lastPostId,
+			posted ? Date.now() : row.lastPostedAt,
+			lastError,
+			row.userKey,
+		],
 	);
 	return posted;
 }
@@ -254,8 +260,14 @@ export async function postToday(userKey: string, now = Date.now()) {
 	// Deliberately not today: today is not over, and nothing is written to
 	// summaryDay for a part of a day that tonight's run will count properly.
 	db().run(
-		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastError = ? WHERE userKey = ?",
-		[addDays(date, -1), lastPostId, lastError, userKey],
+		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
+		[
+			addDays(date, -1),
+			lastPostId,
+			posted ? Date.now() : row.lastPostedAt,
+			lastError,
+			userKey,
+		],
 	);
 	return posted;
 }

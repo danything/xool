@@ -14,6 +14,7 @@ export interface Summary {
 	enabled: number;
 	lastSummarizedOn: string | null;
 	lastPostId: string | null;
+	lastPostedAt: number | null;
 	lastError: string | null;
 }
 export interface User {

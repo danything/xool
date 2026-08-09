@@ -9,7 +9,7 @@ type Props = {
 	wkey?: string;
 	summary?: {
 		enabled: boolean;
-		lastSummarizedOn?: string;
+		lastPostedAt?: number;
 		lastError?: string;
 	};
 	keyInfo?: Promise<{
@@ -22,6 +22,30 @@ type Props = {
 let { message, wkey, summary, keyInfo }: Props = $props();
 
 let saving = $state(false);
+let postingNow = $state(false);
+
+const dateTime = new Intl.DateTimeFormat("ja-JP", {
+	dateStyle: "short",
+	timeStyle: "short",
+});
+
+async function postNow() {
+	try {
+		postingNow = true;
+		const res = await fetch("/api/summary/now", { method: "POST" });
+		const ret = await res.json();
+		if (!res.ok || ret.error)
+			throw new Error(ret.error ?? "投稿できませんでした");
+		setMessage(
+			ret.posted ? "現在までの分を投稿しました" : "投稿できませんでした",
+		);
+	} catch (error) {
+		setMessage(error instanceof Error ? error.message : "投稿できませんでした");
+	} finally {
+		await invalidateAll();
+		postingNow = false;
+	}
+}
 
 async function toggleSummary(event: Event) {
 	const enabled = (event.currentTarget as HTMLInputElement).checked;
@@ -74,11 +98,26 @@ async function toggleSummary(event: Event) {
 			初めてONにしたときは、その時点までの当日分をすぐ投稿します。
 			<br />
 			ポストが1件もなかった日は投稿しません。リポストは数に含めません。
-			{#if summary?.lastSummarizedOn}
+			{#if summary?.lastPostedAt}
 				<br />
-				最終処理: {summary.lastSummarizedOn} 分
+				最終投稿: {dateTime.format(summary.lastPostedAt)}
 			{/if}
 		</p>
+		{#if summary?.enabled}
+			<!-- The automatic first post only happens once, so without this there
+			     is no way to see one again before midnight. -->
+			<button
+				type="button"
+				class="btn btn-sm not-prose"
+				disabled={postingNow}
+				onclick={postNow}
+			>
+				{#if postingNow}
+					<span class="loading loading-spinner loading-xs"></span>
+				{/if}
+				今すぐ投稿
+			</button>
+		{/if}
 		{#if summary?.lastError}
 			<ErrorAlert>前回の自動ポスト: {summary.lastError}</ErrorAlert>
 		{/if}

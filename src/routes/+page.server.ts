@@ -47,7 +47,7 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 		wkey,
 		summary: {
 			enabled: summary?.enabled === 1,
-			lastSummarizedOn: summary?.lastSummarizedOn ?? undefined,
+			lastPostedAt: summary?.lastPostedAt ?? undefined,
 			lastError: summary?.lastError ?? undefined,
 		},
 		keyInfo: autoAction("me", wkey),

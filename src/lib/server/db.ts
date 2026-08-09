@@ -79,6 +79,10 @@ export default function db(): DatabaseType {
 	// Whether a summary went out for that day, which is what x.com charges the
 	// $0.015 for. Added after the table shipped, so it has to be checked for.
 	addColumn(instance, "summaryDay", "posted", "INTEGER NOT NULL DEFAULT 0");
+	// When the last summary actually went out. lastSummarizedOn is bookkeeping
+	// about which day has been dealt with, which is not the same question and
+	// made a poor thing to show someone.
+	addColumn(instance, "summary", "lastPostedAt", "INTEGER");
 	// The metrics page is gone and so are the tables it filled. This runs on
 	// every boot because there is no migration runner to run it once; both
 	// statements are no-ops on a database that has already seen them.
