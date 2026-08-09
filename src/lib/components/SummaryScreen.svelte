@@ -24,9 +24,14 @@ let { message, wkey, summary, keyInfo }: Props = $props();
 let saving = $state(false);
 let postingNow = $state(false);
 
+// Pinned rather than left to the runtime: the server renders this in the
+// container's UTC and the browser would re-render it nine hours later on
+// hydration, so the time visibly jumps the moment the page opens. JST is also
+// the right answer -- the whole feature is defined against JST midnight.
 const dateTime = new Intl.DateTimeFormat("ja-JP", {
 	dateStyle: "short",
 	timeStyle: "short",
+	timeZone: "Asia/Tokyo",
 });
 
 async function postNow() {

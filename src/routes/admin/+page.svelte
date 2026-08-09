@@ -9,9 +9,12 @@ const money = new Intl.NumberFormat("en-US", {
 	currency: "USD",
 	minimumFractionDigits: 3,
 });
+// JST explicitly, so the server's UTC render and the browser's do not disagree
+// and swap on hydration. The daily rows beside it are JST too.
 const dateTime = new Intl.DateTimeFormat("ja-JP", {
 	dateStyle: "short",
 	timeStyle: "short",
+	timeZone: "Asia/Tokyo",
 });
 </script>
 
