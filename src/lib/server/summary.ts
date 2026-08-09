@@ -37,11 +37,10 @@ export function getSummary(userKey: string): Summary | null {
 }
 
 export function setEnabled(userKey: string, enabled: boolean) {
-	// lastSummarizedOn stays null on the way in, which makes yesterday due
-	// immediately: switching this on is how you find out what it posts, and
-	// waiting until midnight to find out is a poor way to learn that.
-	// Turning it off and on again does not repost -- the date recorded by that
-	// first run is kept.
+	// lastSummarizedOn is deliberately left alone. It is the record of which day
+	// has already been dealt with, and the caller reads it to decide whether
+	// this is a first enable; clearing it here would make every toggle look like
+	// one and post again.
 	db().run(
 		`INSERT INTO summary (userKey, enabled) VALUES (?, ?)
 		 ON CONFLICT(userKey) DO UPDATE SET enabled = excluded.enabled, lastError = NULL`,
@@ -105,8 +104,9 @@ export function summaryText(
 		previous === undefined || partial
 			? ""
 			: ` (前日比 ${signed(posts.length - previous.posts)})`;
-	// A line whose numbers are all zero says nothing, and every one of them
-	// spends part of a post nobody asked to be long.
+	// The reaction line always goes in -- it is what the post is for, and zeroes
+	// are an answer. The rest only earn their place when they have something to
+	// say, because each one spends part of a post nobody asked to be long.
 	const lines = [
 		`${heading}${diff}`,
 		replies > 0 && `うちリプライ ${replies}件`,
@@ -125,12 +125,22 @@ function signed(value: number): string {
 	return value > 0 ? `+${value}` : `${value}`;
 }
 
-/** Whether a summary actually went out. */
-async function postSummary(
+/**
+ * Reports one JST day and notes what x.com charged for it. Whether it actually
+ * posted is the return value.
+ *
+ * `partial` is a day still in progress, which the button reports on demand. It
+ * differs from a finished day in three ways: it always posts, even with nothing
+ * to show, because someone is watching and waiting; it writes nothing to
+ * summaryDay, because tonight's run will count the day properly; and it marks
+ * yesterday rather than today as dealt with, for the same reason.
+ */
+async function post(
 	row: Summary,
 	date: string,
-	force: boolean,
+	options: { endTime: string; partial: boolean },
 ): Promise<boolean> {
+	const { endTime, partial } = options;
 	const user = db()
 		.query<User, [string]>("SELECT * FROM user WHERE key = ?")
 		.get(row.userKey);
@@ -143,7 +153,7 @@ async function postSummary(
 	const ret = await autoAction("ownPosts", row.userKey, {
 		id: user.socialId,
 		startTime: jstMidnight(date),
-		endTime: jstMidnight(addDays(date, 1)),
+		endTime,
 	});
 	const status = ret?.rateLimit?.httpStatus;
 
@@ -152,36 +162,39 @@ async function postSummary(
 	} else if (status !== undefined && status >= 400) {
 		lastError = `𝕏がポストの取得を拒否しました (${status})`;
 	} else {
-		// Yesterday's summary was posted after midnight, so it lands inside this
-		// window and would count itself.
+		// The last summary lands inside the window it now reports on -- just
+		// after midnight for the nightly run, earlier the same day for a second
+		// press of the button -- so without this it counts itself.
 		const all: OwnPost[] = ret?.data ?? [];
 		const posts = all.filter((post) => post.id !== row.lastPostId);
 		const impressions = posts.reduce(
 			(sum, post) => sum + (post.non_public_metrics?.impression_count ?? 0),
 			0,
 		);
-		const previous = db()
-			.query<SummaryDay, [string, string]>(
-				"SELECT * FROM summaryDay WHERE userKey = ? AND date = ?",
-			)
-			.get(row.userKey, addDays(date, -1));
 		const record = (didPost: boolean) =>
 			db().run(
 				"INSERT OR REPLACE INTO summaryDay (userKey, date, posts, impressions, posted) VALUES (?, ?, ?, ?, ?)",
 				[row.userKey, date, posts.length, impressions, didPost ? 1 : 0],
 			);
-		record(false);
+		if (!partial) record(false);
 
-		// A quiet day is normally not worth $0.015 to announce. The run that
-		// switching this on kicks off is the exception: someone who just turned
-		// it on is waiting to see what it does, and "nothing happened" is a poor
-		// answer whether or not it is technically correct.
-		if (posts.length > 0 || force) {
+		// A quiet day is not worth $0.015 to announce on its own.
+		if (partial || posts.length > 0) {
+			// Neither comparison means anything about a day that is still
+			// running, so a partial report does not pay for them.
+			const context = partial
+				? { partial: true }
+				: {
+						previous:
+							db()
+								.query<SummaryDay, [string, string]>(
+									"SELECT * FROM summaryDay WHERE userKey = ? AND date = ?",
+								)
+								.get(row.userKey, addDays(date, -1)) ?? undefined,
+						streak: streakEndingOn(row.userKey, date),
+					};
 			const result = await autoAction("tweet", row.userKey, {
-				text: summaryText(date, posts, {
-					previous: previous ?? undefined,
-					streak: streakEndingOn(row.userKey, date),
-				}),
+				text: summaryText(date, posts, context),
 			});
 			if (result?.error !== undefined) {
 				lastError = result.error;
@@ -190,9 +203,11 @@ async function postSummary(
 			} else {
 				lastPostId = result?.data?.id ?? null;
 				posted = true;
-				record(true);
+				if (!partial) record(true);
 			}
 		}
+		// Reads are billed per resource returned, including the one filtered out
+		// above.
 		recordSpend(row.userKey, {
 			reads: all.length,
 			posts: posted ? 1 : 0,
@@ -205,7 +220,7 @@ async function postSummary(
 	db().run(
 		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
 		[
-			date,
+			partial ? addDays(date, -1) : date,
 			lastPostId,
 			posted ? Date.now() : row.lastPostedAt,
 			lastError,
@@ -216,75 +231,19 @@ async function postSummary(
 }
 
 /**
- * Posts what today looks like so far, for someone who has just switched this
- * on. The day it would otherwise report closed before the tool was watching,
- * so there is nothing to say about it; today has whatever there is.
- *
- * Yesterday is marked as handled either way, so the timer does not follow this
- * up with a second post, and tonight's midnight run still reports today in
- * full -- with this post itself excluded from the count.
+ * Posts what today looks like so far. The button behind it exists because the
+ * automatic post only ever reports a day that is over: on the first enable that
+ * day closed before the tool was watching, and afterwards midnight is a long
+ * time to wait to see what this thing does.
  */
 export async function postToday(userKey: string, now = Date.now()) {
 	const row = getSummary(userKey);
-	const user = db()
-		.query<User, [string]>("SELECT * FROM user WHERE key = ?")
-		.get(userKey);
-	if (row === null || user === null) return false;
-
-	const date = jstDate(now);
-	let lastError: string | null = null;
-	let lastPostId: string | null = row.lastPostId;
-	let posted = false;
-
-	const ret = await autoAction("ownPosts", userKey, {
-		id: user.socialId,
-		startTime: jstMidnight(date),
+	if (row === null) return false;
+	return await post(row, jstDate(now), {
 		// x.com rejects an end_time that is not comfortably in the past.
 		endTime: isoSeconds(now - 60_000),
+		partial: true,
 	});
-	const status = ret?.rateLimit?.httpStatus;
-
-	if (ret?.error !== undefined) {
-		lastError = ret.error;
-	} else if (status !== undefined && status >= 400) {
-		lastError = `𝕏がポストの取得を拒否しました (${status})`;
-	} else {
-		const posts: OwnPost[] = ret?.data ?? [];
-		const impressions = posts.reduce(
-			(sum, post) => sum + (post.non_public_metrics?.impression_count ?? 0),
-			0,
-		);
-		const result = await autoAction("tweet", userKey, {
-			text: summaryText(date, posts, { partial: true }),
-		});
-		if (result?.error !== undefined) {
-			lastError = result.error;
-		} else if (result?.rateLimit?.httpStatus >= 400) {
-			lastError = `𝕏がポストを拒否しました (${result.rateLimit.httpStatus})`;
-		} else {
-			lastPostId = result?.data?.id ?? null;
-			posted = true;
-		}
-		recordSpend(userKey, {
-			reads: posts.length,
-			posts: posted ? 1 : 0,
-			impressions,
-		});
-	}
-
-	// Deliberately not today: today is not over, and nothing is written to
-	// summaryDay for a part of a day that tonight's run will count properly.
-	db().run(
-		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
-		[
-			addDays(date, -1),
-			lastPostId,
-			posted ? Date.now() : row.lastPostedAt,
-			lastError,
-			userKey,
-		],
-	);
-	return posted;
 }
 
 /**
@@ -292,28 +251,22 @@ export async function postToday(userKey: string, now = Date.now()) {
  * one and has not had it yet, and answers with how many went out. Safe to call
  * as often as you like: a day already summarised is skipped, so restarts and
  * overlapping ticks do not repost.
- *
- * Naming one user is how the toggle asks for its own summary right away, and
- * that run posts even for an empty day.
  */
-export async function postDueSummaries(userKey?: string, now = Date.now()) {
+export async function postDueSummaries(now = Date.now()) {
 	const date = addDays(jstDate(now), -1);
-	const due =
-		userKey === undefined
-			? db()
-					.query<Summary, [string]>(
-						"SELECT * FROM summary WHERE enabled = 1 AND (lastSummarizedOn IS NULL OR lastSummarizedOn < ?)",
-					)
-					.all(date)
-			: db()
-					.query<Summary, [string, string]>(
-						"SELECT * FROM summary WHERE enabled = 1 AND userKey = ? AND (lastSummarizedOn IS NULL OR lastSummarizedOn < ?)",
-					)
-					.all(userKey, date);
+	const due = db()
+		.query<Summary, [string]>(
+			"SELECT * FROM summary WHERE enabled = 1 AND (lastSummarizedOn IS NULL OR lastSummarizedOn < ?)",
+		)
+		.all(date);
 
 	let posted = 0;
 	for (const row of due) {
-		if (await postSummary(row, date, userKey !== undefined)) posted++;
+		const done = await post(row, date, {
+			endTime: jstMidnight(addDays(date, 1)),
+			partial: false,
+		});
+		if (done) posted++;
 	}
 	return posted;
 }

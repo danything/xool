@@ -11,6 +11,11 @@ const POST_COST = 0.015;
 // developer console is the authority if that turns out to be generous.
 const USER_READ_COST = 0.001;
 
+/** How far back the daily tables -- and the totals over them -- reach. */
+const DAYS = 30;
+
+const one = <T>(sql: string) => db().query<T, []>(sql).get() as T;
+
 const names = (value: string | undefined) =>
 	(value ?? "")
 		.split(",")
@@ -60,8 +65,6 @@ export type SummaryAdmin = {
 };
 
 export function summaryAdmin(): SummaryAdmin {
-	const one = <T>(sql: string) => db().query<T, []>(sql).get() as T;
-
 	const { users } = one<{ users: number }>(
 		"SELECT COUNT(*) AS users FROM user",
 	);
@@ -103,7 +106,7 @@ export function summaryAdmin(): SummaryAdmin {
 			       SUM(userReads) AS userReads,
 			       SUM(posts) AS posted,
 			       SUM(impressions) AS impressions
-			FROM spend GROUP BY date ORDER BY date DESC LIMIT 30
+			FROM spend GROUP BY date ORDER BY date DESC LIMIT ${DAYS}
 		`)
 		.all();
 
@@ -120,6 +123,8 @@ export function summaryAdmin(): SummaryAdmin {
 		enabled,
 		failing,
 		days,
+		// Over the same window as the table below it, not all time -- the label
+		// on the page says so.
 		cost: days.reduce((sum, day) => sum + day.cost, 0),
 	};
 }
@@ -139,8 +144,6 @@ export type LgtmAdmin = {
 };
 
 export function lgtmAdmin(): LgtmAdmin {
-	const one = <T>(sql: string) => db().query<T, []>(sql).get() as T;
-
 	const { images } = one<{ images: number }>(
 		"SELECT COUNT(*) AS images FROM lImage",
 	);
@@ -183,7 +186,7 @@ export function lgtmAdmin(): LgtmAdmin {
 		.query<{ date: string; images: number }, []>(`
 			SELECT date(createdAt / 1000, 'unixepoch', '+9 hours') AS date,
 			       COUNT(*) AS images
-			FROM lImage GROUP BY date ORDER BY date DESC LIMIT 30
+			FROM lImage GROUP BY date ORDER BY date DESC LIMIT ${DAYS}
 		`)
 		.all();
 

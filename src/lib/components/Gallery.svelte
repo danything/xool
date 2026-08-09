@@ -4,6 +4,7 @@ export type File = { name: string; isDeletable: boolean };
 
 <script lang="ts">
 	import { untrack } from "svelte";
+	import { PER_PAGE } from "$lib/paging";
 	import CopyButton from "./CopyButton.svelte";
 	import DeleteButton from "./DeleteButton.svelte";
 
@@ -63,7 +64,9 @@ export type File = { name: string; isDeletable: boolean };
 			const pageList: File[] = await res.json();
 			items = [...items, ...pageList];
 			page += 1;
-			if (pageList.length === 30) isGetting = false;
+			// A short page is the last one, so leaving this set stops the scroll
+			// handler from asking again.
+			if (pageList.length === PER_PAGE) isGetting = false;
 		}
 	}
 
@@ -85,9 +88,7 @@ export type File = { name: string; isDeletable: boolean };
 	});
 </script>
 
-<div
-	class="flex flex-wrap gap-3 overflow-x-hidden overflo-y-visible py-3"
->
+<div class="flex flex-wrap gap-3 overflow-x-hidden py-3">
 	{#each items as file (file.name)}
 		<!--
 			The copy and delete buttons overlay the tile, so they have to be

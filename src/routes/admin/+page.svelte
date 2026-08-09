@@ -30,7 +30,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 				<div class="stat-value">{number.format(data.summary.enabled)}</div>
 			</div>
 			<div class="stat">
-				<div class="stat-title">𝕏への支払い (推定)</div>
+				<div class="stat-title">𝕏への支払い (直近30日・推定)</div>
 				<div class="stat-value">{money.format(data.summary.cost)}</div>
 			</div>
 		</div>

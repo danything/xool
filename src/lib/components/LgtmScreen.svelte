@@ -8,22 +8,17 @@ import Upload from "$lib/components/Upload.svelte";
 type Props = {
 	message?: string;
 	wkey?: string;
-	isLoggedIn: boolean;
 	ghLogin?: string;
 	xLinked?: boolean;
 	recentImages: GalleryFile[];
 	myImages: GalleryFile[];
 };
 
-let {
-	message,
-	wkey,
-	isLoggedIn,
-	ghLogin,
-	xLinked,
-	recentImages,
-	myImages,
-}: Props = $props();
+let { message, wkey, ghLogin, xLinked, recentImages, myImages }: Props =
+	$props();
+
+// Either sign-in is enough to upload; having both is what ties them together.
+const isLoggedIn = $derived(ghLogin !== undefined || xLinked === true);
 </script>
 
 <div class="prose mx-auto p-4">
@@ -58,9 +53,10 @@ let {
 			<SignInButton />
 		</div>
 	{/if}
-	{#if !ghLogin}
-		<!-- Anyone without a GitHub account attached is on the sign-in that is
-		     going away, so this is exactly the audience that needs to read it. -->
+	{#if xLinked && !ghLogin}
+		<!-- Only the people it is actually about: signed in with 𝕏 and nothing
+		     else. Someone who has not signed in at all is choosing a door, not
+		     standing behind the one that is closing. -->
 		<div role="alert" class="alert alert-warning not-prose my-4">
 			<span>
 				𝕏でのログインはいずれ廃止します。引き続き自分の画像を管理したい場合は、<strong

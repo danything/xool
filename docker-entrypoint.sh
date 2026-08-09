@@ -21,9 +21,7 @@ cp -Rn "$SOURCE"/. "$SHARED"/
 # Builds from before the last 30 days are dropped, except anything this build
 # still needs: a chunk that has not changed in a month is still being served.
 find "$SHARED" -type f -mtime +30 | while read -r file; do
-	case "$SOURCE/${file#"$SHARED/"}" in
-		*) [ -e "$SOURCE/${file#"$SHARED/"}" ] || rm -f "$file" ;;
-	esac
+	[ -e "$SOURCE/${file#"$SHARED/"}" ] || rm -f "$file"
 done
 
 exec bun "$@"

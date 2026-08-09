@@ -99,7 +99,7 @@ async function toggleSummary(event: Event) {
 		<p class="text-sm opacity-60">
 			初めてONにしたときは、その時点までの当日分をすぐ投稿します。
 			<br />
-			ポストが1件もなかった日は投稿しません。リポストは数に含めません。
+			自動ポストはポストが0件の日をスキップします (今すぐ投稿は0件でも投稿します)。リポストは数に含めません。
 			{#if summary?.lastPostedAt}
 				<br />
 				最終投稿: {dateTime.format(summary.lastPostedAt)}

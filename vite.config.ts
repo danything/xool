@@ -24,10 +24,6 @@ export default defineConfig({
 	},
 	ssr: {
 		external: ["bun:sqlite"],
-		// Bundle the highlighter into the server build rather than importing it
-		// from node_modules at runtime, so only the language and theme actually
-		// used are carried and shiki can stay a build-time dependency.
-		noExternal: ["shiki", "@shikijs/langs", "@shikijs/themes"],
 	},
 	optimizeDeps: {
 		exclude: ["bun:sqlite"],

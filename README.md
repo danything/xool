@@ -22,9 +22,18 @@ gitignore してあります。
 services:
   xool:
     environment:
+      # 𝕏 のOAuthアプリ。コールバックは https://x.localhost/api/cb
       - CLIENT_ID=xxxxx
       - CLIENT_SECRET=xxxxx
+      # OAuth の state に使う任意の文字列
       - HASH=xxxxx
+      # LGTM (l.localhost) のGitHubログイン用。コールバックは
+      # https://l.localhost/api/gh/cb 。無くても起動はします
+      - GITHUB_CLIENT_ID=xxxxx
+      - GITHUB_CLIENT_SECRET=xxxxx
+      # /admin を開ける人。空なら誰も開けません
+      - ADMIN_X_IDS=xxxxx
+      - ADMIN_GH_LOGINS=xxxxx
 ```
 
 重ねた結果は下記で確認できます。

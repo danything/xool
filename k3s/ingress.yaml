@@ -13,18 +13,12 @@ spec:
         - x.doany.io
         - l.doany.io
   rules:
-    # One Deployment answers both names. Which tool a request gets is decided
-    # in the app from the Host header, so the two rules are identical here.
+    # One Deployment answers both names. Which tool a request gets is decided in
+    # the app from the Host header, so both names route everything to the same
+    # place and the rules differ only in the name itself.
     - host: x.doany.io
       http:
         paths:
-          - path: /images
-            pathType: Prefix
-            backend:
-              service:
-                name: xool
-                port:
-                  number: 3000
           - path: /
             pathType: Prefix
             backend:
@@ -35,13 +29,6 @@ spec:
     - host: l.doany.io
       http:
         paths:
-          - path: /images
-            pathType: Prefix
-            backend:
-              service:
-                name: xool
-                port:
-                  number: 3000
           - path: /
             pathType: Prefix
             backend:

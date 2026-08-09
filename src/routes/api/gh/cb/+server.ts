@@ -1,7 +1,7 @@
 import { redirect } from "@sveltejs/kit";
 import db from "$lib/server/db";
 import { accessToken, githubUser } from "$lib/server/github";
-import { generateUniqueKey } from "$lib/server/key";
+import { generateUniqueKey, SESSION_MAX_AGE } from "$lib/server/key";
 import { adopt } from "$lib/server/link";
 import type { GhUser, User } from "$lib/server/model";
 import type { RequestHandler } from "./$types";
@@ -70,6 +70,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		]);
 	}
 
-	cookies.set("key", key, { path: "/", maxAge: 1209600 });
+	cookies.set("key", key, { path: "/", maxAge: SESSION_MAX_AGE });
 	redirect(302, "/");
 };

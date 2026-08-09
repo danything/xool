@@ -22,7 +22,8 @@ let pending: string | undefined;
 beforeNavigate(({ willUnload, to }) => {
 	if (willUnload || !to?.url) return;
 	pending = to.url.href;
-	// `updated` flips once the version poll below sees a new build.
+	// `updated` flips once the version poll configured in vite.config.ts sees a
+	// new build.
 	if (staleAssets || updated.current) location.href = to.url.href;
 });
 

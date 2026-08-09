@@ -27,7 +27,6 @@ export const load: PageServerLoad = async ({ cookies, locals }) => {
 			site: "lgtm" as const,
 			message,
 			wkey,
-			isLoggedIn: ghUser !== null || xUser !== null,
 			ghLogin: ghUser?.login,
 			xLinked: xUser !== null,
 			recentImages: get(1, false, wkey),

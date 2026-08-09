@@ -1,5 +1,6 @@
 import { unlinkSync } from "node:fs";
 import sharp from "sharp";
+import { PER_PAGE } from "../paging";
 import db from "./db";
 import { generateUniqueKey } from "./key";
 
@@ -56,19 +57,18 @@ export function deleteFile(fileName: string, userKey: string): boolean {
 }
 
 export function get(page: number, find: boolean, userKey?: string) {
-	const perPage = 30;
-	const offset = (page - 1) * perPage;
+	const offset = (page - 1) * PER_PAGE;
 	const rows = find
 		? db()
 				.query<{ fileName: string; userKey: string }, [string, number, number]>(
 					"SELECT fileName, userKey FROM lImage WHERE userKey = ? ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?",
 				)
-				.all(userKey ?? "", perPage, offset)
+				.all(userKey ?? "", PER_PAGE, offset)
 		: db()
 				.query<{ fileName: string; userKey: string }, [number, number]>(
 					"SELECT fileName, userKey FROM lImage ORDER BY createdAt DESC, id DESC LIMIT ? OFFSET ?",
 				)
-				.all(perPage, offset);
+				.all(PER_PAGE, offset);
 
 	return rows.map((image) => ({
 		name: image.fileName,

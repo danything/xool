@@ -1,9 +1,10 @@
 import { redirect } from "@sveltejs/kit";
 import { action, client } from "$lib/server/client";
 import db from "$lib/server/db";
-import { generateUniqueKey } from "$lib/server/key";
+import { generateUniqueKey, SESSION_MAX_AGE } from "$lib/server/key";
 import { adopt } from "$lib/server/link";
 import type { GhUser, User } from "$lib/server/model";
+import { recordUserRead } from "$lib/server/spend";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
@@ -45,29 +46,33 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	const existUser = db()
 		.query<User, [string]>("SELECT * FROM user WHERE socialId = ?")
 		.get(user.data.id);
+
+	let key: string;
 	if (existUser !== null) {
-		if (signedInWithGithub && current !== undefined) {
-			adopt(existUser.key, current);
-		}
+		key = existUser.key;
 		db().run(
 			"UPDATE user SET accessToken = ?, refreshToken = ? WHERE socialId = ?",
 			[data.access_token, data.refresh_token, user.data.id],
 		);
-		cookies.set("key", existUser.key, { path: "/", maxAge: 1209600 });
-		redirect(302, `/${redirectParam}`);
+	} else {
+		key = await generateUniqueKey(
+			async (k) =>
+				db()
+					.query<User, [string]>("SELECT * FROM user WHERE key = ?")
+					.get(k) !== null,
+		);
+		db().run(
+			"INSERT INTO user (key, socialId, accessToken, refreshToken) VALUES (?, ?, ?, ?)",
+			[key, user.data.id, data.access_token, data.refresh_token],
+		);
 	}
-	const key = await generateUniqueKey(
-		async (k) =>
-			db().query<User, [string]>("SELECT * FROM user WHERE key = ?").get(k) !==
-			null,
-	);
-	db().run(
-		"INSERT INTO user (key, socialId, accessToken, refreshToken) VALUES (?, ?, ?, ?)",
-		[key, user.data.id, data.access_token, data.refresh_token],
-	);
+
 	if (signedInWithGithub && current !== undefined) {
 		adopt(key, current);
 	}
-	cookies.set("key", key, { path: "/", maxAge: 1209600 });
+	// The users/me above is billed like every other read. It is only written
+	// down here because until now there was no key to write it against.
+	recordUserRead(key);
+	cookies.set("key", key, { path: "/", maxAge: SESSION_MAX_AGE });
 	redirect(302, `/${redirectParam}`);
 };

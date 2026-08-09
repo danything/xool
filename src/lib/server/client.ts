@@ -135,10 +135,17 @@ export async function autoAction(
 	if (existUser === null)
 		return { error: "keyが無効です再ログインしてください" };
 	let accessToken = existUser.accessToken;
-	const ret = await action(type, accessToken, payload);
 	// The account lookup costs money like everything else here, and it runs on
-	// every visit to the top page.
-	if (type === "me" && ret?.rateLimit?.httpStatus === 200) recordUserRead(key);
+	// every visit to the top page. Wrapped so the retry below is counted too:
+	// billing follows the call that succeeded, not the one that was tried first.
+	const run = async () => {
+		const ret = await action(type, accessToken, payload);
+		if (type === "me" && ret?.rateLimit?.httpStatus === 200)
+			recordUserRead(key);
+		return ret;
+	};
+
+	const ret = await run();
 	if (ret?.status !== 401) return ret;
 	const refreshedToken = await refreshToken(existUser.refreshToken);
 	// Only invalid_request used to be treated as "sign in again", but x.com has
@@ -153,10 +160,10 @@ export async function autoAction(
 		refreshedToken.refresh_token,
 		key,
 	]);
-	return await action(type, accessToken, payload);
+	return await run();
 }
 
-type ReturnType<T> = {
+type XResponse<T> = {
 	status?: number;
 	error?: string;
 	data: T;
@@ -189,12 +196,7 @@ export async function action(
 ) {
 	switch (type) {
 		case "me":
-			return (await client(
-				"GET",
-				"users/me",
-				null,
-				accessToken,
-			)) as ReturnType<{
+			return (await client("GET", "users/me", null, accessToken)) as XResponse<{
 				id: number;
 				name: string;
 				username: string;
@@ -228,7 +230,7 @@ export async function action(
 				`users/${payload?.id}/tweets?${searchParams.toString()}`,
 				null,
 				accessToken,
-			)) as ReturnType<OwnPost[]>;
+			)) as XResponse<OwnPost[]>;
 		}
 	}
 
