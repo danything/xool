@@ -6,7 +6,7 @@ services:
       - .:/usr/src/app
     command: dev
     networks:
-      - docker_default
+      - proxy
       - default
     environment:
       - PROTOCOL_HEADER=x-forwarded-proto
@@ -20,10 +20,9 @@ services:
       - ADMIN_X_IDS=
       - ADMIN_GH_LOGINS=
     labels:
-      - "traefik.http.routers.xool.rule=Host(`x.localhost`) || Host(`l.localhost`)"
-      - "traefik.http.routers.xool.tls=true"
+      caddy: x.localhost, l.localhost
+      caddy.reverse_proxy: "{{upstreams 3000}}"
 
 networks:
-  docker_default:
+  proxy:
     external: true
-    name: docker_default

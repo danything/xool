@@ -2,8 +2,8 @@
 
 ## 開発環境
 
-traefik環境を先に構築しておく下記参照  
-<https://github.com/5ym/Local-Dev-Traefik>  
+リバースプロキシ (genkan) を先に立ち上げておく  
+<https://github.com/danything/genkan>  
 下記コマンドで立ち上げ
 
 ```sh
