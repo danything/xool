@@ -1,4 +1,4 @@
-FROM oven/bun:1.3.14-slim AS base
+FROM oven/bun:1.4.0-slim AS base
 WORKDIR /usr/src/app
 EXPOSE 3000
 ENV BODY_SIZE_LIMIT=100M
