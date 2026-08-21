@@ -92,6 +92,25 @@ export default function db(): DatabaseType {
 			grantedBy TEXT NOT NULL
 		)
 	`);
+	// Which posts have already been paid for today. x.com charges per resource
+	// returned but deduplicates within a UTC day, so reading the same post a
+	// second time before midnight is free -- and counting it again would put a
+	// number on the admin page that the bill does not agree with.
+	instance.run(`
+		CREATE TABLE IF NOT EXISTS readCharge (
+			day TEXT NOT NULL,
+			postId TEXT NOT NULL,
+			PRIMARY KEY (day, postId)
+		)
+	`);
+	// x.com's own daily Post-read count, so the estimate can be checked against
+	// the thing it is estimating rather than trusted.
+	instance.run(`
+		CREATE TABLE IF NOT EXISTS usageDay (
+			day TEXT PRIMARY KEY,
+			reads INTEGER NOT NULL
+		)
+	`);
 	// The metrics page is gone, and LGTM now has its own repository, database
 	// and deployment. These run on every boot because there is no migration
 	// runner to run them once; each is a no-op on a database that has already

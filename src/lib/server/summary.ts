@@ -1,7 +1,7 @@
 import { autoAction, type OwnPost } from "./client";
 import db from "./db";
 import type { Summary, SummaryDay, User } from "./model";
-import { recordSpend } from "./spend";
+import { chargeableReads, recordSpend } from "./spend";
 
 // Everything here is reckoned in JST: the day a summary covers is the day the
 // person posting it lived through, not the one UTC happened to be on.
@@ -206,10 +206,10 @@ async function post(
 				if (!partial) record(true);
 			}
 		}
-		// Reads are billed per resource returned, including the one filtered out
-		// above.
+		// Billed per resource returned -- including the one filtered out above,
+		// which x.com still had to hand over -- but only the first time today.
 		recordSpend(row.userKey, {
-			reads: all.length,
+			reads: chargeableReads(all.map((post) => post.id)),
 			posts: posted ? 1 : 0,
 			impressions,
 		});

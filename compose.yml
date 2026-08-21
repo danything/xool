@@ -15,6 +15,7 @@ services:
       - CLIENT_SECRET=
       - HASH=
       - ADMIN_X_IDS=
+      - X_BEARER_TOKEN=
     labels:
       caddy: x.localhost, l.localhost
       caddy.reverse_proxy: "{{upstreams 3000}}"

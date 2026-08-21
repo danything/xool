@@ -1,6 +1,7 @@
 import { accountExists } from "./account";
 import db from "./db";
 import type { User } from "./model";
+import { reportedReads } from "./usage";
 
 // x.com's pay-per-use rates, for turning recorded activity into what it cost.
 // Reads of your own posts are the cheap tier and are deduplicated within a UTC
@@ -150,6 +151,8 @@ export type SummaryAdmin = {
 		posted: number;
 		impressions: number;
 		cost: number;
+		/** What x.com says it served that day, if it has been asked. */
+		reported?: number;
 	}[];
 	cost: number;
 };
@@ -175,9 +178,10 @@ export function summaryAdmin(): SummaryAdmin {
 		`)
 		.all();
 
-	// Billed activity, by the JST day it happened on -- not by the day a summary
-	// was about. A manual post is charged today for yesterday, and summaryDay
-	// never hears about it at all.
+	// Billed activity, by the UTC day it happened on. x.com deduplicates and
+	// reports on UTC days, and the whole point of this table is to line up
+	// against that -- grouping by JST would put half of each night on the wrong
+	// side of the comparison.
 	const rows = db()
 		.query<
 			{
@@ -190,7 +194,7 @@ export function summaryAdmin(): SummaryAdmin {
 			},
 			[]
 		>(`
-			SELECT date(at / 1000, 'unixepoch', '+9 hours') AS date,
+			SELECT date(at / 1000, 'unixepoch') AS date,
 			       COUNT(DISTINCT userKey) AS users,
 			       SUM(reads) AS posts,
 			       SUM(userReads) AS userReads,
@@ -200,8 +204,10 @@ export function summaryAdmin(): SummaryAdmin {
 		`)
 		.all();
 
+	const reported = reportedReads();
 	const days = rows.map((row) => ({
 		...row,
+		reported: reported.get(row.date),
 		cost:
 			row.posts * READ_COST +
 			row.userReads * USER_READ_COST +

@@ -54,6 +54,9 @@ services:
       - HASH=xxxxx
       # /admin を開ける人。空なら誰も開けません
       - ADMIN_X_IDS=xxxxx
+      # 開発者ポータルの Bearer Token。GET /2/usage/tweets 専用で、
+      # 管理画面に 𝕏 の実測値を並べるためだけに使います。無くても動きます
+      - X_BEARER_TOKEN=xxxxx
 ```
 
 重ねた結果は下記で確認できます。

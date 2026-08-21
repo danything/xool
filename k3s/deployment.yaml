@@ -98,6 +98,16 @@ spec:
                 secretKeyRef:
                   name: xool-secrets
                   key: hash
+            # App-only, and only for GET /2/usage/tweets -- the endpoint refuses
+            # both the user tokens this app stores and the credentials it signs
+            # people in with. Optional: without it the admin page simply has no
+            # column to check itself against.
+            - name: X_BEARER_TOKEN
+              valueFrom:
+                secretKeyRef:
+                  name: xool-secrets
+                  key: x-bearer-token
+                  optional: true
           volumeMounts:
             - name: xool-db
               mountPath: /usr/src/app/data

@@ -125,9 +125,10 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 		<table class="table table-sm">
 			<thead>
 				<tr>
-					<th scope="col">日付</th>
+					<th scope="col">日付 (UTC)</th>
 					<th scope="col">対象</th>
 					<th scope="col">読み取り</th>
+					<th scope="col">𝕏の実測</th>
 					<th scope="col">アカウント参照</th>
 					<th scope="col">投稿</th>
 					<th scope="col">インプレッション</th>
@@ -140,13 +141,26 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 						<td>{day.date}</td>
 						<td>{number.format(day.users)}</td>
 						<td>{number.format(day.posts)}</td>
+						<td>
+							{#if day.reported === undefined}
+								<span class="opacity-40">-</span>
+							{:else if day.reported === day.posts}
+								{number.format(day.reported)}
+							{:else}
+								<!-- The estimate and the bill disagreeing is the one thing
+								     this column exists to show, so it does not whisper it. -->
+								<span class="badge badge-warning badge-sm">
+									{number.format(day.reported)}
+								</span>
+							{/if}
+						</td>
 						<td>{number.format(day.userReads)}</td>
 						<td>{number.format(day.posted)}</td>
 						<td>{number.format(day.impressions)}</td>
 						<td>{money.format(day.cost)}</td>
 					</tr>
 				{:else}
-					<tr><td colspan="7">まだ記録がありません</td></tr>
+					<tr><td colspan="8">まだ記録がありません</td></tr>
 				{/each}
 			</tbody>
 		</table>
