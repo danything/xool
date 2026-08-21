@@ -33,5 +33,5 @@ export const DELETE: RequestHandler = async ({ request, cookies }) => {
 
 	const result = deleteUser(userKey, key);
 	if ("error" in result) return json(result, { status: 400 });
-	return json({ ok: true, images: result.images });
+	return json({ ok: true });
 };

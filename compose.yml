@@ -11,14 +11,10 @@ services:
     environment:
       - PROTOCOL_HEADER=x-forwarded-proto
       - HOST_HEADER=x-forwarded-host
-      - LGTM_HOST=l.localhost
       - CLIENT_ID=
       - CLIENT_SECRET=
       - HASH=
-      - GITHUB_CLIENT_ID=
-      - GITHUB_CLIENT_SECRET=
       - ADMIN_X_IDS=
-      - ADMIN_GH_LOGINS=
     labels:
       caddy: x.localhost, l.localhost
       caddy.reverse_proxy: "{{upstreams 3000}}"

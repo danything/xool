@@ -1,8 +1,3 @@
-export interface GhUser {
-	key: string;
-	githubId: string;
-	login: string;
-}
 export interface SummaryDay {
 	userKey: string;
 	date: string;

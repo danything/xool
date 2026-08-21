@@ -2,8 +2,7 @@ import { redirect } from "@sveltejs/kit";
 import { action, client } from "$lib/server/client";
 import db from "$lib/server/db";
 import { generateUniqueKey, SESSION_MAX_AGE } from "$lib/server/key";
-import { adopt } from "$lib/server/link";
-import type { GhUser, User } from "$lib/server/model";
+import type { User } from "$lib/server/model";
 import { recordUserRead } from "$lib/server/spend";
 import type { RequestHandler } from "./$types";
 
@@ -34,15 +33,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		);
 		redirect(302, "/");
 	}
-	// The same link the other way round: whoever is signed in with GitHub right
-	// now keeps their images when they sign in with x.com as well.
-	const current = cookies.get("key");
-	const signedInWithGithub =
-		current !== undefined &&
-		db()
-			.query<GhUser, [string]>("SELECT * FROM ghUser WHERE key = ?")
-			.get(current) !== null;
-
 	const existUser = db()
 		.query<User, [string]>("SELECT * FROM user WHERE socialId = ?")
 		.get(user.data.id);
@@ -67,9 +57,6 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		);
 	}
 
-	if (signedInWithGithub && current !== undefined) {
-		adopt(key, current);
-	}
 	// The users/me above is billed like every other read. It is only written
 	// down here because until now there was no key to write it against.
 	recordUserRead(key);

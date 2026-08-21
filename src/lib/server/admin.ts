@@ -1,7 +1,6 @@
 import { accountExists } from "./account";
 import db from "./db";
-import { deleteAllImages } from "./lgtm";
-import type { GhUser, User } from "./model";
+import type { User } from "./model";
 
 // x.com's pay-per-use rates, for turning recorded activity into what it cost.
 // Reads of your own posts are the cheap tier and are deduplicated within a UTC
@@ -33,18 +32,11 @@ const names = (value: string | undefined) =>
  */
 export function isEnvAdmin(key: string | undefined): boolean {
 	if (key === undefined) return false;
-
 	const xUser = db()
 		.query<User, [string]>("SELECT * FROM user WHERE key = ?")
 		.get(key);
-	if (xUser !== null && names(process.env.ADMIN_X_IDS).includes(xUser.socialId))
-		return true;
-
-	const ghUser = db()
-		.query<GhUser, [string]>("SELECT * FROM ghUser WHERE key = ?")
-		.get(key);
 	return (
-		ghUser !== null && names(process.env.ADMIN_GH_LOGINS).includes(ghUser.login)
+		xUser !== null && names(process.env.ADMIN_X_IDS).includes(xUser.socialId)
 	);
 }
 
@@ -68,50 +60,27 @@ export function isAdmin(key: string | undefined): boolean {
 
 export type AdminUser = {
 	userKey: string;
-	login: string | null;
-	socialId: string | null;
-	images: number;
+	socialId: string;
 	admin: boolean;
 	/** Granted in the environment, so the page must not offer to revoke it. */
 	fixed: boolean;
 };
 
-/**
- * Everyone the app knows about, by whichever sign-ins are attached to them.
- * Both sign-ins mint keys, so the key list is the union of the two tables --
- * a linked account appears once, under the key they share.
- */
+/** Everyone who has signed in, and whether they can open this page. */
 export function adminUsers(): AdminUser[] {
 	return db()
-		.query<
-			{
-				userKey: string;
-				login: string | null;
-				socialId: string | null;
-				images: number;
-				granted: number;
-			},
-			[]
-		>(`
-			SELECT k.key AS userKey,
-			       ghUser.login AS login,
+		.query<{ userKey: string; socialId: string; granted: number }, []>(`
+			SELECT user.key AS userKey,
 			       user.socialId AS socialId,
-			       (SELECT COUNT(*) FROM lImage WHERE lImage.userKey = k.key) AS images,
-			       (SELECT COUNT(*) FROM admin WHERE admin.userKey = k.key) AS granted
-			FROM (SELECT key FROM user UNION SELECT key FROM ghUser) k
-			LEFT JOIN user ON user.key = k.key
-			LEFT JOIN ghUser ON ghUser.key = k.key
-			ORDER BY images DESC, k.key
-			LIMIT 200
+			       (SELECT COUNT(*) FROM admin WHERE admin.userKey = user.key) AS granted
+			FROM user ORDER BY user.socialId LIMIT 200
 		`)
 		.all()
 		.map((row) => {
 			const fixed = isEnvAdmin(row.userKey);
 			return {
 				userKey: row.userKey,
-				login: row.login,
 				socialId: row.socialId,
-				images: row.images,
 				admin: fixed || row.granted > 0,
 				fixed,
 			};
@@ -142,14 +111,8 @@ export function setAdmin(
 }
 
 /**
- * Removes an account and everything personal to it: the x.com tokens, the
- * GitHub identity, the summary settings and their history, any admin grant,
- * and the images -- files and all.
- *
- * The images go because leaving them would leave the account behind too, as a
- * row in the uploader list owned by an identity that no longer exists. Anyone
- * who embedded one in a pull request loses it, which is the cost of the choice
- * and the reason this asks twice.
+ * Removes an account and everything about it: the x.com tokens, the summary
+ * settings and their history, and any admin grant.
  *
  * `spend` stays. It is not about the person, it is what x.com charged, and the
  * cost history would be wrong without it.
@@ -157,20 +120,18 @@ export function setAdmin(
 export function deleteUser(
 	userKey: string,
 	by: string,
-): { error: string } | { images: number } {
+): { error: string } | { ok: true } {
 	if (!accountExists(userKey)) return { error: "そのユーザーは存在しません" };
 	if (userKey === by) return { error: "自分自身は削除できません" };
 	if (isEnvAdmin(userKey)) return { error: "環境変数で指定された管理者です" };
 
-	const images = deleteAllImages(userKey);
 	db().transaction(() => {
 		db().run("DELETE FROM admin WHERE userKey = ?", [userKey]);
 		db().run("DELETE FROM summaryDay WHERE userKey = ?", [userKey]);
 		db().run("DELETE FROM summary WHERE userKey = ?", [userKey]);
-		db().run("DELETE FROM ghUser WHERE key = ?", [userKey]);
 		db().run("DELETE FROM user WHERE key = ?", [userKey]);
 	})();
-	return { images };
+	return { ok: true };
 }
 
 export type SummaryAdmin = {
@@ -256,68 +217,4 @@ export function summaryAdmin(): SummaryAdmin {
 		// on the page says so.
 		cost: days.reduce((sum, day) => sum + day.cost, 0),
 	};
-}
-
-export type LgtmAdmin = {
-	images: number;
-	owners: number;
-	githubUsers: number;
-	uploaders: {
-		userKey: string;
-		login: string | null;
-		socialId: string | null;
-		images: number;
-		latest: number;
-	}[];
-	days: { date: string; images: number }[];
-};
-
-export function lgtmAdmin(): LgtmAdmin {
-	const { images } = one<{ images: number }>(
-		"SELECT COUNT(*) AS images FROM lImage",
-	);
-	const { owners } = one<{ owners: number }>(
-		"SELECT COUNT(DISTINCT userKey) AS owners FROM lImage",
-	);
-	const { githubUsers } = one<{ githubUsers: number }>(
-		"SELECT COUNT(*) AS githubUsers FROM ghUser",
-	);
-
-	// The key itself is a session credential, so it is never shown whole -- who
-	// someone is comes from the accounts attached to it.
-	const uploaders = db()
-		.query<
-			{
-				userKey: string;
-				login: string | null;
-				socialId: string | null;
-				images: number;
-				latest: number;
-			},
-			[]
-		>(`
-			SELECT lImage.userKey AS userKey,
-			       ghUser.login AS login,
-			       user.socialId AS socialId,
-			       COUNT(*) AS images,
-			       MAX(lImage.createdAt) AS latest
-			FROM lImage
-			LEFT JOIN ghUser ON ghUser.key = lImage.userKey
-			LEFT JOIN user ON user.key = lImage.userKey
-			GROUP BY lImage.userKey
-			ORDER BY images DESC
-			LIMIT 50
-		`)
-		.all()
-		.map((row) => ({ ...row, userKey: row.userKey.slice(0, 8) }));
-
-	const days = db()
-		.query<{ date: string; images: number }, []>(`
-			SELECT date(createdAt / 1000, 'unixepoch', '+9 hours') AS date,
-			       COUNT(*) AS images
-			FROM lImage GROUP BY date ORDER BY date DESC LIMIT ${DAYS}
-		`)
-		.all();
-
-	return { images, owners, githubUsers, uploaders, days };
 }

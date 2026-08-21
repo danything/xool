@@ -5,9 +5,7 @@
 declare global {
 	namespace App {
 		// interface Error {}
-		interface Locals {
-			site: import("$lib/server/site").Site;
-		}
+		// interface Locals {}
 		// interface PageData {}
 		// interface PageState {}
 		// interface Platform {}

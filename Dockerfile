@@ -16,18 +16,14 @@ RUN bun run build
 
 FROM base AS prod-deps
 COPY package.json bun.lock ./
-# sharp ships a prebuilt libvips per platform and the install pulls both the
-# glibc and the musl build of it, about 18MB each. This image is Debian, so the
-# musl half can never be loaded -- drop it rather than carry it in every layer.
-RUN bun i --frozen-lockfile --production && rm -rf node_modules/@img/*musl*
+RUN bun i --frozen-lockfile --production
 
 FROM base
-RUN mkdir -p data images && chown bun:bun data images
+RUN mkdir -p data && chown bun:bun data
 USER bun
 COPY --from=prod-deps --chown=bun:bun /usr/src/app/node_modules ./node_modules
 COPY --from=builder   --chown=bun:bun /usr/src/app/package.json ./package.json
 COPY --from=builder   --chown=bun:bun /usr/src/app/build ./build
-COPY --from=builder   --chown=bun:bun /usr/src/app/assets ./assets
 # The served asset directory is a volume shared with the other pod during a
 # rollout, so this build's own copy is kept outside it and merged in at start.
 # Copied from the builder rather than duplicated here: WORKDIR belongs to root

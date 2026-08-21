@@ -37,24 +37,6 @@ export default function db(): DatabaseType {
 			refreshToken TEXT NOT NULL
 		)
 	`);
-	// LGTM's own sign-in. No token is kept: it is only ever used once, during
-	// the callback, to ask GitHub who just arrived.
-	instance.run(`
-		CREATE TABLE IF NOT EXISTS ghUser (
-			key TEXT PRIMARY KEY,
-			githubId TEXT NOT NULL UNIQUE,
-			login TEXT NOT NULL
-		)
-	`);
-	instance.run(`
-		CREATE TABLE IF NOT EXISTS lImage (
-			id INTEGER PRIMARY KEY AUTOINCREMENT,
-			fileName TEXT NOT NULL UNIQUE,
-			userKey TEXT NOT NULL,
-			createdAt INTEGER NOT NULL
-		)
-	`);
-	instance.run("CREATE INDEX IF NOT EXISTS lImage_userKey ON lImage(userKey)");
 	instance.run(`
 		CREATE TABLE IF NOT EXISTS summary (
 			userKey TEXT PRIMARY KEY,
@@ -110,10 +92,13 @@ export default function db(): DatabaseType {
 			grantedBy TEXT NOT NULL
 		)
 	`);
-	// The metrics page is gone and so are the tables it filled. This runs on
-	// every boot because there is no migration runner to run it once; both
-	// statements are no-ops on a database that has already seen them.
+	// The metrics page is gone, and LGTM now has its own repository, database
+	// and deployment. These run on every boot because there is no migration
+	// runner to run them once; each is a no-op on a database that has already
+	// seen it.
 	instance.run("DROP TABLE IF EXISTS tweetMetric");
 	instance.run("DROP TABLE IF EXISTS tweet");
+	instance.run("DROP TABLE IF EXISTS lImage");
+	instance.run("DROP TABLE IF EXISTS ghUser");
 	return instance;
 }

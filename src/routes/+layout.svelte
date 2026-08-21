@@ -7,11 +7,6 @@ import "../app.css";
 
 let { children, data } = $props();
 
-// The two hostnames are two tools. Each one names itself and links nowhere
-// else, so a visitor never sees the other exists.
-const lgtm = $derived(data.site === "lgtm");
-const title = $derived(lgtm ? "LGTM" : "ポスト通信簿");
-
 // A rolling update replaces the hashed asset filenames, so a tab opened before
 // the deploy asks for chunks the new pods no longer have. Without this a click
 // on a link just dies; instead we hand the navigation over to the browser,
@@ -46,19 +41,17 @@ if (browser) {
 </script>
 
 <svelte:head>
-	<title>{title}</title>
+	<title>ポスト通信簿</title>
 	<meta
 		name="description"
-		content={lgtm
-			? "LGTM画像を生成できます"
-			: "前日のポストの成績を毎日まとめて自動ポストします"}
+		content="前日のポストの成績を毎日まとめて自動ポストします"
 	/>
 </svelte:head>
 
 <nav class="navbar px-0">
 	<div class="page-container flex items-center">
 		<div class="flex-1">
-			<a class="btn btn-ghost text-xl" href="/">{title}</a>
+			<a class="btn btn-ghost text-xl" href="/">ポスト通信簿</a>
 		</div>
 		{#if data.isAdmin}
 			<div class="flex-none">

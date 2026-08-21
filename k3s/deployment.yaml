@@ -68,22 +68,17 @@ spec:
             periodSeconds: 10
             failureThreshold: 6
           env:
-            # No fixed ORIGIN: this pod serves two hostnames, so the origin has
-            # to come from the request. Traefik sets both of these headers.
+            # The origin comes from the request rather than a fixed ORIGIN, so
+            # that this works the same behind Traefik as it does locally.
             - name: PROTOCOL_HEADER
               value: x-forwarded-proto
             - name: HOST_HEADER
               value: x-forwarded-host
-            # The hostname LGTM answers on. Anything else is the summary tool.
-            - name: LGTM_HOST
-              value: l.doany.io
             # Who can open /admin. Named here rather than stored in the database
             # so that nobody can grant it to themselves by signing up. Empty
             # means nobody.
             - name: ADMIN_X_IDS
               value: "1021006412715921410"
-            - name: ADMIN_GH_LOGINS
-              value: "5ym"
             # Read by server.js: finish serving in-flight requests before
             # exiting. Must stay under terminationGracePeriodSeconds above.
             - name: SHUTDOWN_TIMEOUT
@@ -103,32 +98,12 @@ spec:
                 secretKeyRef:
                   name: xool-secrets
                   key: hash
-            # optional until the sealed secret carries them: without it a pod
-            # rolled out before the GitHub app exists cannot start at all, and
-            # the only thing that stops working is LGTM's sign-in.
-            - name: GITHUB_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: xool-secrets
-                  key: github-client-id
-                  optional: true
-            - name: GITHUB_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: xool-secrets
-                  key: github-client-secret
-                  optional: true
           volumeMounts:
-            - name: xool-images
-              mountPath: /usr/src/app/images
             - name: xool-db
               mountPath: /usr/src/app/data
             - name: xool-assets
               mountPath: /usr/src/app/build/client/_app/immutable
       volumes:
-        - name: xool-images
-          persistentVolumeClaim:
-            claimName: xool-images
         - name: xool-db
           persistentVolumeClaim:
             claimName: xool-db
