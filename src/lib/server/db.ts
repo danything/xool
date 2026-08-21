@@ -100,6 +100,16 @@ export default function db(): DatabaseType {
 	// Account lookups are billed at a different rate from post reads, so they
 	// are counted separately rather than folded in.
 	addColumn(instance, "spend", "userReads", "INTEGER NOT NULL DEFAULT 0");
+	// Admin handed out from the admin page. ADMIN_X_IDS and ADMIN_GH_LOGINS stay
+	// the root of it: those cannot be revoked from inside the app, so a mistake
+	// here is always recoverable.
+	instance.run(`
+		CREATE TABLE IF NOT EXISTS admin (
+			userKey TEXT PRIMARY KEY,
+			grantedAt INTEGER NOT NULL,
+			grantedBy TEXT NOT NULL
+		)
+	`);
 	// The metrics page is gone and so are the tables it filled. This runs on
 	// every boot because there is no migration runner to run it once; both
 	// statements are no-ops on a database that has already seen them.

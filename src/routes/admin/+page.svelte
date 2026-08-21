@@ -1,7 +1,31 @@
 <script lang="ts">
+import { invalidateAll } from "$app/navigation";
+import { setMessage } from "$lib/stores/toast.svelte";
 import type { PageProps } from "./$types";
 
 let { data }: PageProps = $props();
+
+let saving = $state<string>();
+
+async function setAdmin(userKey: string, admin: boolean) {
+	try {
+		saving = userKey;
+		const res = await fetch("/api/admin", {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ userKey, admin }),
+		});
+		const ret = await res.json();
+		if (!res.ok || ret.error)
+			throw new Error(ret.error ?? "変更できませんでした");
+		setMessage(admin ? "管理者にしました" : "管理者を解除しました");
+	} catch (error) {
+		setMessage(error instanceof Error ? error.message : "変更できませんでした");
+	} finally {
+		await invalidateAll();
+		saving = undefined;
+	}
+}
 
 const number = new Intl.NumberFormat("ja-JP");
 const money = new Intl.NumberFormat("en-US", {
@@ -156,4 +180,49 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 			</table>
 		</div>
 	{/if}
+
+	<div class="prose"><h4>ユーザーと権限</h4></div>
+	<div class="overflow-x-auto">
+		<table class="table table-sm">
+			<thead>
+				<tr>
+					<th scope="col">GitHub</th>
+					<th scope="col">𝕏 ID</th>
+					<th scope="col">key</th>
+					<th scope="col">画像</th>
+					<th scope="col">管理者</th>
+				</tr>
+			</thead>
+			<tbody>
+				{#each data.users as user (user.userKey)}
+					<tr>
+						<td>{user.login ?? "-"}</td>
+						<td>{user.socialId ?? "-"}</td>
+						<td class="font-mono opacity-60">{user.userKey.slice(0, 8)}…</td>
+						<td>{number.format(user.images)}</td>
+						<td>
+							{#if user.fixed}
+								<!-- Named in the environment, so the app has no say in it. -->
+								<span class="badge badge-ghost badge-sm">環境変数</span>
+							{:else}
+								<button
+									type="button"
+									class={`btn btn-xs ${user.admin ? "btn-error" : ""}`}
+									disabled={saving !== undefined}
+									onclick={() => setAdmin(user.userKey, !user.admin)}
+								>
+									{#if saving === user.userKey}
+										<span class="loading loading-spinner loading-xs"></span>
+									{/if}
+									{user.admin ? "解除" : "付与"}
+								</button>
+							{/if}
+						</td>
+					</tr>
+				{:else}
+					<tr><td colspan="5">まだユーザーがいません</td></tr>
+				{/each}
+			</tbody>
+		</table>
+	</div>
 </div>

@@ -23,11 +23,13 @@ const names = (value: string | undefined) =>
 		.filter((name) => name !== "");
 
 /**
- * Admins are named by environment, not by anything in the database, so nobody
- * can grant it to themselves by signing up. Unset means nobody, which is the
+ * Named in the environment, and so beyond anything the running app can change.
+ * Nobody can grant themselves this by signing up, and nobody can take it away
+ * through the admin page either -- which is what makes it the way back in when
+ * a granted admin turns out to be a mistake. Unset means nobody, which is the
  * right answer for a deployment that has not thought about it yet.
  */
-export function isAdmin(key: string | undefined): boolean {
+export function isEnvAdmin(key: string | undefined): boolean {
 	if (key === undefined) return false;
 
 	const xUser = db()
@@ -42,6 +44,110 @@ export function isAdmin(key: string | undefined): boolean {
 	return (
 		ghUser !== null && names(process.env.ADMIN_GH_LOGINS).includes(ghUser.login)
 	);
+}
+
+/**
+ * Either named in the environment or handed the role by someone who already
+ * had it. The database half exists so that adding an admin does not mean
+ * editing a manifest and waiting for a rollout; the environment half exists so
+ * that the database half can never lock everyone out.
+ */
+export function isAdmin(key: string | undefined): boolean {
+	if (key === undefined) return false;
+	if (isEnvAdmin(key)) return true;
+	return (
+		db()
+			.query<{ userKey: string }, [string]>(
+				"SELECT userKey FROM admin WHERE userKey = ?",
+			)
+			.get(key) !== null
+	);
+}
+
+export type AdminUser = {
+	userKey: string;
+	login: string | null;
+	socialId: string | null;
+	images: number;
+	admin: boolean;
+	/** Granted in the environment, so the page must not offer to revoke it. */
+	fixed: boolean;
+};
+
+/**
+ * Everyone the app knows about, by whichever sign-ins are attached to them.
+ * Both sign-ins mint keys, so the key list is the union of the two tables --
+ * a linked account appears once, under the key they share.
+ */
+export function adminUsers(): AdminUser[] {
+	return db()
+		.query<
+			{
+				userKey: string;
+				login: string | null;
+				socialId: string | null;
+				images: number;
+				granted: number;
+			},
+			[]
+		>(`
+			SELECT k.key AS userKey,
+			       ghUser.login AS login,
+			       user.socialId AS socialId,
+			       (SELECT COUNT(*) FROM lImage WHERE lImage.userKey = k.key) AS images,
+			       (SELECT COUNT(*) FROM admin WHERE admin.userKey = k.key) AS granted
+			FROM (SELECT key FROM user UNION SELECT key FROM ghUser) k
+			LEFT JOIN user ON user.key = k.key
+			LEFT JOIN ghUser ON ghUser.key = k.key
+			ORDER BY images DESC, k.key
+			LIMIT 200
+		`)
+		.all()
+		.map((row) => {
+			const fixed = isEnvAdmin(row.userKey);
+			return {
+				userKey: row.userKey,
+				login: row.login,
+				socialId: row.socialId,
+				images: row.images,
+				admin: fixed || row.granted > 0,
+				fixed,
+			};
+		});
+}
+
+/** Whether the key names somebody this app has ever seen sign in. */
+function known(userKey: string): boolean {
+	return (
+		db()
+			.query<{ key: string }, [string, string]>(
+				"SELECT key FROM user WHERE key = ? UNION SELECT key FROM ghUser WHERE key = ?",
+			)
+			.get(userKey, userKey) !== null
+	);
+}
+
+/** The reason it could not be done, or undefined if it was. */
+export function setAdmin(
+	userKey: string,
+	admin: boolean,
+	by: string,
+): string | undefined {
+	if (!known(userKey)) return "そのユーザーは存在しません";
+	// Taking it from yourself is how you end up locked out of the page you would
+	// need in order to put it back.
+	if (!admin && userKey === by) return "自分の権限は解除できません";
+	if (!admin && isEnvAdmin(userKey)) return "環境変数で指定された管理者です";
+
+	if (admin) {
+		db().run(
+			"INSERT OR IGNORE INTO admin (userKey, grantedAt, grantedBy) VALUES (?, ?, ?)",
+			[userKey, Date.now(), by],
+		);
+	} else {
+		db().run("DELETE FROM admin WHERE userKey = ?", [userKey]);
+	}
+	return undefined;
 }
 
 export type SummaryAdmin = {
