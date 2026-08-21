@@ -3,15 +3,18 @@ import db from "./db";
 import type { User } from "./model";
 import { reportedReads } from "./usage";
 
-// x.com's pay-per-use rates, for turning recorded activity into what it cost.
+// x.com's pay-per-use rates, measured against the bill rather than read off
+// the pricing page.
 //
-// Reads are $0.005, not the $0.001 the pricing page advertises for "owned
-// reads" of your own posts. That is measured, not assumed: the developer
-// portal's cost chart puts 19 August at $0.21 and x.com's own usage endpoint
-// puts that day at 42 resources, and 42 x $0.005 is $0.21 exactly. Every other
-// day on the chart lines up the same way, including the 206-resource peak at
-// $1.03. Others have reported the same gap between the advertised owned rate
-// and the billed one, so believe the bill.
+// Reads are $0.005, the ordinary Post read. The $0.001 "owned read" rate is
+// real but does not apply here: it wants the authenticated user to be the
+// owner of the developer app, and this app reads other people's accounts --
+// including its operator's, whose X account is not the one the app belongs
+// to. So every read is somebody else's data as far as billing is concerned.
+//
+// The portal agrees: 19 August cost $0.21 and the usage endpoint puts that
+// day at 42 resources, which is 42 x $0.005 exactly. Every other day lines
+// up the same way, including the 206-resource peak at $1.03.
 const READ_COST = 0.005;
 const POST_COST = 0.015;
 // Account lookups are free, which is measured rather than hoped: the portal's
