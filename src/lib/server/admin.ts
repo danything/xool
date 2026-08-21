@@ -14,18 +14,13 @@ import { reportedReads } from "./usage";
 // and the billed one, so believe the bill.
 const READ_COST = 0.005;
 const POST_COST = 0.015;
-// Account lookups are the one rate still unmeasured. x.com prices reads of
-// your own data at $0.001 and other users at $0.010, and says nothing anywhere
-// about which of the two an account lookup of yourself is. Nothing settles it either: the whole v2 surface has one usage endpoint,
-// it counts Post reads only, and neither it nor the response headers mention
-// money. So both are carried and the page shows the range rather than picking
-// one and looking certain.
-//
-// The gap is bounded and small. Account lookups deduplicate within a UTC day
-// like everything else, so it is one charge per signed-in person per day no
-// matter how often they visit -- a few cents a year apart, either way.
-const USER_READ_COST = 0.001;
-const USER_READ_COST_HIGH = 0.01;
+// Account lookups are free, which is measured rather than hoped: the portal's
+// User cost series is empty across the same thirty days this recorded thirteen
+// of them, and they are absent from the Post series too -- x.com's usage
+// endpoint reports the exact read count with none of them in it. They are
+// still counted here, because a rate that is zero today is not a rate that is
+// zero forever, and the column is what would notice.
+const USER_READ_COST = 0;
 
 /** How far back the daily tables -- and the totals over them -- reach. */
 const DAYS = 30;
@@ -169,8 +164,6 @@ export type SummaryAdmin = {
 		reported?: number;
 	}[];
 	cost: number;
-	/** The same total with account lookups at the dearer of the two rates. */
-	costHigh: number;
 };
 
 export function summaryAdmin(): SummaryAdmin {
@@ -221,15 +214,14 @@ export function summaryAdmin(): SummaryAdmin {
 		.all();
 
 	const reported = reportedReads();
-	const days = rows.map((row) => {
-		const settled = row.posts * READ_COST + row.posted * POST_COST;
-		return {
-			...row,
-			reported: reported.get(row.date),
-			cost: settled + row.userReads * USER_READ_COST,
-			costHigh: settled + row.userReads * USER_READ_COST_HIGH,
-		};
-	});
+	const days = rows.map((row) => ({
+		...row,
+		reported: reported.get(row.date),
+		cost:
+			row.posts * READ_COST +
+			row.userReads * USER_READ_COST +
+			row.posted * POST_COST,
+	}));
 
 	return {
 		users,
@@ -239,6 +231,5 @@ export function summaryAdmin(): SummaryAdmin {
 		// Over the same window as the table below it, not all time -- the label
 		// on the page says so.
 		cost: days.reduce((sum, day) => sum + day.cost, 0),
-		costHigh: days.reduce((sum, day) => sum + day.costHigh, 0),
 	};
 }

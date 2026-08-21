@@ -93,15 +93,6 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 		<div class="stat">
 			<div class="stat-title">𝕏への支払い (直近30日・推定)</div>
 			<div class="stat-value">{money.format(data.summary.cost)}</div>
-			{#if data.summary.costHigh > data.summary.cost}
-				<!-- Account lookups bill at either $0.001 or $0.010 and x.com does
-				     not say which. Showing the span is honest; showing one number
-				     would not be. Compare the two against the portal balance over a
-				     week and the residual says which end is real. -->
-				<div class="stat-desc">
-					アカウント参照が高い方なら {money.format(data.summary.costHigh)}
-				</div>
-			{/if}
 		</div>
 	</div>
 
@@ -138,7 +129,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 					<th scope="col">対象</th>
 					<th scope="col">読み取り</th>
 					<th scope="col">𝕏の実測</th>
-					<th scope="col">アカウント参照</th>
+					<th scope="col">アカウント参照 (無料)</th>
 					<th scope="col">投稿</th>
 					<th scope="col">インプレッション</th>
 					<th scope="col">費用</th>
