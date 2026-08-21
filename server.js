@@ -9,10 +9,13 @@ import { handler } from "./handler.js";
 // static handler it would otherwise use builds its file list once at startup,
 // so the older pod never sees a file the newer one dropped in after it booted.
 //
-// Hence this entry point instead of the adapter's. `dev` is what makes sirv
-// look a file up on every request rather than indexing once; it forces
-// `cache-control: no-store` along with that, which is exactly wrong for
-// content-hashed filenames, so setHeaders puts the real one back.
+// Hence this entry point instead of the adapter's. Everything below mirrors
+// the adapter's own sirv call in handler.js -- same precompression, same
+// Cache-Control -- and differs by one flag: `dev` makes sirv look a file up on
+// every request rather than indexing once. It forces `no-store` along with
+// that, which is exactly wrong for content-hashed filenames, so setHeaders puts
+// the real header back. There is no adapter option or environment variable that
+// reaches that flag, which is the whole reason this file exists.
 const PREFIX = "/_app/immutable";
 const assets = sirv(`build/client${PREFIX}`, {
 	dev: true,
@@ -38,9 +41,12 @@ const server = http.createServer((req, res) => {
 	});
 });
 
-// Same shutdown behaviour the adapter's own entry point has, and the same
-// reason for it: the pod keeps answering what is already in flight while
-// Traefik stops sending it anything new.
+// Repeated from the adapter's index.js rather than inherited: a custom server
+// gets handler.js, which reads only ORIGIN, PROTOCOL_HEADER, HOST_HEADER,
+// PORT_HEADER, ADDRESS_HEADER, XFF_DEPTH and BODY_SIZE_LIMIT. SHUTDOWN_TIMEOUT
+// belongs to the entry point, so honouring it is now this file's job. The pod
+// keeps answering what is already in flight while Traefik stops sending it
+// anything new.
 let shuttingDown = false;
 function shutdown() {
 	if (shuttingDown) return;
