@@ -11,22 +11,12 @@ spec:
   tls:
     - hosts:
         - x.doany.io
-        - l.doany.io
   rules:
-    # One Deployment answers both names. Which tool a request gets is decided in
-    # the app from the Host header, so both names route everything to the same
-    # place and the rules differ only in the name itself.
+    # LGTM answers on its own name from its own deployment now, in the lgtm
+    # namespace. Leaving it listed here as well had Traefik holding two rules
+    # for l.doany.io and picking between them per request, so a sign-in could
+    # land on whichever app it felt like.
     - host: x.doany.io
-      http:
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: xool
-                port:
-                  number: 3000
-    - host: l.doany.io
       http:
         paths:
           - path: /
