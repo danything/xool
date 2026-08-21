@@ -29,7 +29,7 @@ spec:
       terminationGracePeriodSeconds: 45
       containers:
         - name: xool
-          image: ghcr.io/danything/xool:41260644dc6849e2993e92d5298434c8982226ea
+          image: ghcr.io/danything/xool:469d9982bf9e567f670c02eafd4c1c1d2e3db22b
           ports:
             - containerPort: 3000
           # Endpoint removal and SIGTERM race each other. Sleeping first lets
