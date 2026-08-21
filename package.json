@@ -10,7 +10,8 @@
 		"check": "biome check --write && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo"
 	},
 	"dependencies": {
-		"sharp": "^0.35.3"
+		"sharp": "^0.35.3",
+		"sirv": "^3.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.5",

@@ -6,6 +6,7 @@
       "name": "xool",
       "dependencies": {
         "sharp": "^0.35.3",
+        "sirv": "^3.0.2",
       },
       "devDependencies": {
         "@biomejs/biome": "^2.5.5",
