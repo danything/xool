@@ -176,7 +176,7 @@ async function toggleSummary(event: Event) {
 	<h3 class="mt-6 mb-2">運営費について</h3>
 	<p class="my-0">
 		𝕏のAPIが従量課金のため、自動ポスト1件につき <strong>$0.015</strong>、集計の読み取りに1ポストあたり
-		<strong>$0.001</strong> かかり、運営者が負担しています。支えていただける方は
+		<strong>$0.005</strong> かかり、運営者が負担しています。支えていただける方は
 		<a
 			class="link link-primary"
 			target="_blank"

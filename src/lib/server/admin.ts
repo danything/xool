@@ -4,13 +4,19 @@ import type { User } from "./model";
 import { reportedReads } from "./usage";
 
 // x.com's pay-per-use rates, for turning recorded activity into what it cost.
-// Reads of your own posts are the cheap tier and are deduplicated within a UTC
-// day; a summary carries no URL, so it is the plain post price.
-const READ_COST = 0.001;
+//
+// Reads are $0.005, not the $0.001 the pricing page advertises for "owned
+// reads" of your own posts. That is measured, not assumed: the developer
+// portal's cost chart puts 19 August at $0.21 and x.com's own usage endpoint
+// puts that day at 42 resources, and 42 x $0.005 is $0.21 exactly. Every other
+// day on the chart lines up the same way, including the 206-resource peak at
+// $1.03. Others have reported the same gap between the advertised owned rate
+// and the billed one, so believe the bill.
+const READ_COST = 0.005;
 const POST_COST = 0.015;
-// x.com prices reads of your own data at $0.001 and other users at $0.010, and
-// says nothing anywhere about which of the two an account lookup of yourself
-// is. Nothing settles it either: the whole v2 surface has one usage endpoint,
+// Account lookups are the one rate still unmeasured. x.com prices reads of
+// your own data at $0.001 and other users at $0.010, and says nothing anywhere
+// about which of the two an account lookup of yourself is. Nothing settles it either: the whole v2 surface has one usage endpoint,
 // it counts Post reads only, and neither it nor the response headers mention
 // money. So both are carried and the page shows the range rather than picking
 // one and looking certain.
