@@ -12,7 +12,8 @@ let {
 } = $props();
 
 // Deleting an image cannot be undone, and the button sits on top of one in a
-// grid of them. The first click only arms it; the second one means it.
+// grid of them. The first click only arms it -- the bin turns into a tick --
+// and the second one means it.
 let armed = $state(false);
 let deleting = $state(false);
 
@@ -57,7 +58,7 @@ async function onClickDelete(e: MouseEvent) {
 
 <button
 	type="button"
-	class={`btn absolute right-3 top-20 ${armed ? "btn-error" : "btn-square"} ${
+	class={`btn btn-square ${armed ? "btn-error" : ""} ${
 		isVisible || armed || deleting ? "" : "invisible group-hover/item:visible"
 	}`}
 	disabled={deleting}
@@ -67,7 +68,16 @@ async function onClickDelete(e: MouseEvent) {
 	{#if deleting}
 		<span class="loading loading-spinner loading-sm"></span>
 	{:else if armed}
-		削除する?
+		<svg
+			xmlns="http://www.w3.org/2000/svg"
+			class="h-6 w-6"
+			fill="none"
+			viewBox="0 0 24 24"
+			stroke="currentColor"
+		>
+			<title>Confirm delete</title>
+			<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m4.5 12.75 6 6 9-13.5" />
+		</svg>
 	{:else}
 		<svg
 			xmlns="http://www.w3.org/2000/svg"

@@ -25,7 +25,7 @@ function onClickCopy(e: MouseEvent) {
 
 <button
 	type="button"
-	class={`btn btn-square absolute right-3 top-3 ${isVisible ? "" : "invisible group-hover/item:visible"}`}
+	class={`btn btn-square ${isVisible ? "" : "invisible group-hover/item:visible"}`}
 	onclick={onClickCopy}
 >
 	<svg

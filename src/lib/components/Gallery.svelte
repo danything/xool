@@ -114,13 +114,18 @@ export type File = { name: string; isDeletable: boolean };
 					height="960"
 				/>
 			</button>
-			{#if file.isDeletable}
-				<DeleteButton
-					fileName={file.name}
-					onDeleted={() => removeItem(file.name)}
-				/>
-			{/if}
-			<CopyButton text={() => lgtmMarkdown(file.name)} />
+			<!-- One row, so the two never have to know each other's size: delete
+			     sits to the left of copy, and an armed delete grows leftwards
+			     from the right edge rather than pushing copy along. -->
+			<div class="absolute right-3 top-3 flex gap-2">
+				{#if file.isDeletable}
+					<DeleteButton
+						fileName={file.name}
+						onDeleted={() => removeItem(file.name)}
+					/>
+				{/if}
+				<CopyButton text={() => lgtmMarkdown(file.name)} />
+			</div>
 		</div>
 	{/each}
 </div>
@@ -133,21 +138,23 @@ export type File = { name: string; isDeletable: boolean };
 	<div class="modal-box w-auto max-w-[92vw] p-2">
 		<div class="relative group/item">
 			{#if diaImage}
-				{#if diaImage.isDeletable}
-					<DeleteButton
-						fileName={diaImage.name}
+				<div class="absolute right-3 top-3 flex gap-2">
+					{#if diaImage.isDeletable}
+						<DeleteButton
+							fileName={diaImage.name}
+							isVisible={false}
+							onDeleted={() => {
+								if (diaImage) removeItem(diaImage.name);
+								closeDialog();
+							}}
+						/>
+					{/if}
+					<CopyButton
+						text={() => lgtmMarkdown(diaImage?.name ?? "")}
+						onClick={closeDialog}
 						isVisible={false}
-						onDeleted={() => {
-							if (diaImage) removeItem(diaImage.name);
-							closeDialog();
-						}}
 					/>
-				{/if}
-				<CopyButton
-					text={() => lgtmMarkdown(diaImage?.name ?? "")}
-					onClick={closeDialog}
-					isVisible={false}
-				/>
+				</div>
 				<!--
 					Uploads are capped at 960px but most are well under it, and leaving
 					the width to the image renders those at 1:1 -- a 500px wide one sat
