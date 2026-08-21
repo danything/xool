@@ -3,12 +3,12 @@ import { action, client } from "$lib/server/client";
 import db from "$lib/server/db";
 import { generateUniqueKey, SESSION_MAX_AGE } from "$lib/server/key";
 import type { User } from "$lib/server/model";
+import { callbackUrl } from "$lib/server/oauth";
 import { recordUserRead } from "$lib/server/spend";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url, cookies }) => {
 	const code = url.searchParams.get("code");
-	const redirectParam = url.searchParams.get("redirect") ?? "";
 	if (process.env.HASH !== url.searchParams.get("state") || !code) {
 		cookies.set("message", "不正なリクエストです", { path: "/" });
 		redirect(302, "/");
@@ -17,11 +17,11 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 		grant_type: "authorization_code",
 		code,
 		code_verifier: "challenge",
-		redirect_uri: `${url.origin}/api/cb?redirect=${redirectParam}`,
+		redirect_uri: callbackUrl(url.origin),
 	});
 	const data = await client("POST", "oauth2/token", params.toString());
 	if (data.error === "invalid_request") {
-		redirect(302, `/api/oauth?redirect=${redirectParam}`);
+		redirect(302, "/api/oauth");
 	}
 
 	const user = await action("me", data.access_token);
@@ -61,5 +61,5 @@ export const GET: RequestHandler = async ({ url, cookies }) => {
 	// down here because until now there was no key to write it against.
 	recordUserRead(key);
 	cookies.set("key", key, { path: "/", maxAge: SESSION_MAX_AGE });
-	redirect(302, `/${redirectParam}`);
+	redirect(302, "/");
 };

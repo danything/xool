@@ -206,7 +206,7 @@ async function toggleSummary(event: Event) {
 		<a
 			class="link link-primary"
 			target="_blank"
-			href="https://github.com/DAnything/xool"
+			href="https://github.com/danything/xool"
 			rel="noreferrer"
 		>
 			ソースコード
