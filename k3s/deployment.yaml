@@ -25,6 +25,16 @@ spec:
       labels:
         app: xool
     spec:
+      # The volumes are created by whichever uid the image ran as at the time,
+      # and that moved from 999 to 1000 when the base image went to Bun 1.4 --
+      # which left the database directory unwritable by the container that owns
+      # it. Naming the group here has the kubelet line the volumes up on mount,
+      # so the next time it moves nothing has to be fixed by hand on the node.
+      # OnRootMismatch skips the walk when the top-level directory already
+      # matches, rather than re-chowning every image on every start.
+      securityContext:
+        fsGroup: 1000
+        fsGroupChangePolicy: OnRootMismatch
       # preStop (5s) + SHUTDOWN_TIMEOUT (30s, honoured by server.js), plus room.
       terminationGracePeriodSeconds: 45
       containers:

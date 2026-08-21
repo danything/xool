@@ -6,6 +6,47 @@ import type { PageProps } from "./$types";
 let { data }: PageProps = $props();
 
 let saving = $state<string>();
+// Deleting an account cannot be undone and takes its images with it, so the
+// first click only arms the button; any other click puts it back.
+let armed = $state<string>();
+
+$effect(() => {
+	if (armed === undefined) return;
+	const disarm = () => {
+		armed = undefined;
+	};
+	window.addEventListener("click", disarm);
+	return () => window.removeEventListener("click", disarm);
+});
+
+async function remove(
+	event: MouseEvent,
+	user: { userKey: string; images: number },
+) {
+	event.stopPropagation();
+	if (armed !== user.userKey) {
+		armed = user.userKey;
+		return;
+	}
+	armed = undefined;
+	try {
+		saving = user.userKey;
+		const res = await fetch("/api/admin", {
+			method: "DELETE",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ userKey: user.userKey }),
+		});
+		const ret = await res.json();
+		if (!res.ok || ret.error)
+			throw new Error(ret.error ?? "削除できませんでした");
+		setMessage(`削除しました (画像 ${ret.images}件)`);
+	} catch (error) {
+		setMessage(error instanceof Error ? error.message : "削除できませんでした");
+	} finally {
+		await invalidateAll();
+		saving = undefined;
+	}
+}
 
 async function setAdmin(userKey: string, admin: boolean) {
 	try {
@@ -191,6 +232,7 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 					<th scope="col">key</th>
 					<th scope="col">画像</th>
 					<th scope="col">管理者</th>
+					<th scope="col"></th>
 				</tr>
 			</thead>
 			<tbody>
@@ -218,9 +260,26 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 								</button>
 							{/if}
 						</td>
+						<td>
+							{#if !user.fixed}
+								<button
+									type="button"
+									class={`btn btn-xs ${armed === user.userKey ? "btn-error" : "btn-ghost"}`}
+									disabled={saving !== undefined}
+									onclick={(event) => remove(event, user)}
+								>
+									{#if saving === user.userKey}
+										<span class="loading loading-spinner loading-xs"></span>
+									{/if}
+									{armed === user.userKey
+										? `画像${user.images}件ごと削除`
+										: "削除"}
+								</button>
+							{/if}
+						</td>
 					</tr>
 				{:else}
-					<tr><td colspan="5">まだユーザーがいません</td></tr>
+					<tr><td colspan="6">まだユーザーがいません</td></tr>
 				{/each}
 			</tbody>
 		</table>

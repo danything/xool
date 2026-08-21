@@ -56,6 +56,29 @@ export function deleteFile(fileName: string, userKey: string): boolean {
 	return result.changes > 0;
 }
 
+/**
+ * Removes every image a key owns, files included, and answers with how many.
+ * The unlinks happen after the rows are gone: a file left on disk with no row
+ * is invisible clutter, while a row pointing at a missing file is a gallery
+ * tile that 404s.
+ */
+export function deleteAllImages(userKey: string): number {
+	const rows = db()
+		.query<{ fileName: string }, [string]>(
+			"SELECT fileName FROM lImage WHERE userKey = ?",
+		)
+		.all(userKey);
+	db().run("DELETE FROM lImage WHERE userKey = ?", [userKey]);
+	for (const { fileName } of rows) {
+		try {
+			unlinkSync(`images/${fileName}`);
+		} catch {
+			// Already gone is the outcome we wanted.
+		}
+	}
+	return rows.length;
+}
+
 export function get(page: number, find: boolean, userKey?: string) {
 	const offset = (page - 1) * PER_PAGE;
 	const rows = find

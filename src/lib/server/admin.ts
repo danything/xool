@@ -1,5 +1,6 @@
 import { accountExists } from "./account";
 import db from "./db";
+import { deleteAllImages } from "./lgtm";
 import type { GhUser, User } from "./model";
 
 // x.com's pay-per-use rates, for turning recorded activity into what it cost.
@@ -138,6 +139,38 @@ export function setAdmin(
 		db().run("DELETE FROM admin WHERE userKey = ?", [userKey]);
 	}
 	return undefined;
+}
+
+/**
+ * Removes an account and everything personal to it: the x.com tokens, the
+ * GitHub identity, the summary settings and their history, any admin grant,
+ * and the images -- files and all.
+ *
+ * The images go because leaving them would leave the account behind too, as a
+ * row in the uploader list owned by an identity that no longer exists. Anyone
+ * who embedded one in a pull request loses it, which is the cost of the choice
+ * and the reason this asks twice.
+ *
+ * `spend` stays. It is not about the person, it is what x.com charged, and the
+ * cost history would be wrong without it.
+ */
+export function deleteUser(
+	userKey: string,
+	by: string,
+): { error: string } | { images: number } {
+	if (!accountExists(userKey)) return { error: "そのユーザーは存在しません" };
+	if (userKey === by) return { error: "自分自身は削除できません" };
+	if (isEnvAdmin(userKey)) return { error: "環境変数で指定された管理者です" };
+
+	const images = deleteAllImages(userKey);
+	db().transaction(() => {
+		db().run("DELETE FROM admin WHERE userKey = ?", [userKey]);
+		db().run("DELETE FROM summaryDay WHERE userKey = ?", [userKey]);
+		db().run("DELETE FROM summary WHERE userKey = ?", [userKey]);
+		db().run("DELETE FROM ghUser WHERE key = ?", [userKey]);
+		db().run("DELETE FROM user WHERE key = ?", [userKey]);
+	})();
+	return { images };
 }
 
 export type SummaryAdmin = {
