@@ -1,10 +1,11 @@
 import { json } from "@sveltejs/kit";
+import { accountExists } from "$lib/server/account";
 import { deleteFile } from "$lib/server/lgtm";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {
 	const userKey = cookies.get("key");
-	if (!userKey) {
+	if (!userKey || !accountExists(userKey)) {
 		return json({ error: "ログインしてください" }, { status: 401 });
 	}
 	const { fileName } = await request.json();

@@ -1,3 +1,4 @@
+import { accountExists } from "./account";
 import db from "./db";
 import type { GhUser, User } from "./model";
 
@@ -116,24 +117,13 @@ export function adminUsers(): AdminUser[] {
 		});
 }
 
-/** Whether the key names somebody this app has ever seen sign in. */
-function known(userKey: string): boolean {
-	return (
-		db()
-			.query<{ key: string }, [string, string]>(
-				"SELECT key FROM user WHERE key = ? UNION SELECT key FROM ghUser WHERE key = ?",
-			)
-			.get(userKey, userKey) !== null
-	);
-}
-
 /** The reason it could not be done, or undefined if it was. */
 export function setAdmin(
 	userKey: string,
 	admin: boolean,
 	by: string,
 ): string | undefined {
-	if (!known(userKey)) return "そのユーザーは存在しません";
+	if (!accountExists(userKey)) return "そのユーザーは存在しません";
 	// Taking it from yourself is how you end up locked out of the page you would
 	// need in order to put it back.
 	if (!admin && userKey === by) return "自分の権限は解除できません";
