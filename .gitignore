@@ -20,8 +20,6 @@
 # misc
 .DS_Store
 *.pem
-# sealed-secrets コントローラーの公開鍵 (非秘密、reseal ワークフローが使う)
-!k3s/pub-cert.pem
 
 # debug
 npm-debug.log*
