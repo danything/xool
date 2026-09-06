@@ -33,7 +33,7 @@ yarn-error.log*
 
 # Nothing below is copied into the image; excluding it keeps a docs or manifest
 # edit from busting the build cache.
-/k3s
+/deploy
 /.github
 /.claude
 /.vscode
