@@ -3,10 +3,10 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [main]
-    # Merging the bot's own image-bump PR only touches k3s/, so ignoring it
+    # Merging the bot's own image-bump PR only touches deploy/, so ignoring it
     # here stops the build -> bump PR -> merge -> build loop.
     paths-ignore:
-      - 'k3s/**'
+      - 'deploy/**'
   workflow_dispatch:
 
 # Merging several PRs at once used to start a run per merge, and they all raced
@@ -66,7 +66,7 @@ jobs:
       # every previous bump needed an admin override to merge.
       #
       # Report the check from here instead. The bump rewrites nothing but the
-      # image tag under k3s/, and the image it points at was built and pushed
+      # image tag under deploy/, and the image it points at was built and pushed
       # by the steps above, so there is genuinely nothing left to build. The
       # status has to be posted by this token: branch protection pins the
       # "build" context to the GitHub Actions app.
@@ -82,12 +82,12 @@ jobs:
           # conflict and no one can merge.
           git fetch --depth=1 origin main
           git checkout -B "$branch" FETCH_HEAD
-          sed -i "s#image: ${REGISTRY}/[^:[:space:]]*/xool:[^[:space:]]*#image: ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}#" k3s/deployment.yaml
-          if git diff --quiet -- k3s/deployment.yaml; then
-            echo "k3s/deployment.yaml already points at ${GITHUB_SHA}; nothing to deploy"
+          sed -i "s#image: ${REGISTRY}/[^:[:space:]]*/xool:[^[:space:]]*#image: ${REGISTRY}/${IMAGE_NAME}:${GITHUB_SHA}#" deploy/deployment.yaml
+          if git diff --quiet -- deploy/deployment.yaml; then
+            echo "deploy/deployment.yaml already points at ${GITHUB_SHA}; nothing to deploy"
             exit 0
           fi
-          git add k3s/deployment.yaml
+          git add deploy/deployment.yaml
           git commit -m "chore: update xool image to ${GITHUB_SHA}"
           git push --force origin "$branch"
           title="chore: update xool image to ${GITHUB_SHA::7}"
@@ -98,7 +98,7 @@ jobs:
           gh api "repos/${GITHUB_REPOSITORY}/statuses/$(git rev-parse HEAD)" \
             -f state=success \
             -f context=build \
-            -f description="k3s-only bump; image built by this run" \
+            -f description="deploy-only bump; image built by this run" \
             -f target_url="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
 
           # The status can take a moment to land against the PR, so fall back to

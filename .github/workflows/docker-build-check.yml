@@ -7,7 +7,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    # The image-bump PRs only touch k3s/, so there is nothing to build. Note
+    # The image-bump PRs only touch deploy/, so there is nothing to build. Note
     # that this skip never actually fires for them: they are opened with
     # GITHUB_TOKEN, which by design starts no workflow run at all, so nothing
     # here reports and docker-publish.yml posts their "build" status itself.
