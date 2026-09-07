@@ -46,8 +46,8 @@ spec:
           ports:
             - containerPort: 3000
           # Endpoint removal and SIGTERM race each other. Sleeping first lets
-          # Traefik stop routing here before the server stops accepting, so
-          # in-flight clicks aren't answered with a connection reset.
+          # the Cilium Gateway stop routing here before the server stops
+          # accepting, so in-flight clicks aren't answered with a connection reset.
           lifecycle:
             preStop:
               exec:
@@ -72,7 +72,7 @@ spec:
             failureThreshold: 6
           env:
             # The origin comes from the request rather than a fixed ORIGIN, so
-            # that this works the same behind Traefik as it does locally.
+            # that this works the same behind the gateway as it does locally.
             - name: PROTOCOL_HEADER
               value: x-forwarded-proto
             - name: HOST_HEADER

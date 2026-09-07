@@ -45,8 +45,8 @@ const server = http.createServer((req, res) => {
 // gets handler.js, which reads only ORIGIN, PROTOCOL_HEADER, HOST_HEADER,
 // PORT_HEADER, ADDRESS_HEADER, XFF_DEPTH and BODY_SIZE_LIMIT. SHUTDOWN_TIMEOUT
 // belongs to the entry point, so honouring it is now this file's job. The pod
-// keeps answering what is already in flight while Traefik stops sending it
-// anything new.
+// keeps answering what is already in flight while the Cilium Gateway stops
+// sending it anything new.
 let shuttingDown = false;
 function shutdown() {
 	if (shuttingDown) return;

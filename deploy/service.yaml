@@ -4,7 +4,7 @@ metadata:
   name: xool
   namespace: xool
   # No sticky cookie here. It was added to pin a browser to one pod while a
-  # rollout had two of them up, but Traefik sets that cookie on every response,
+  # rollout had two of them up, but the proxy sets that cookie on every response,
   # and Cloudflare will not cache anything carrying Set-Cookie -- so every
   # hashed asset went to the origin on every request, permanently, to smooth
   # over a window that lasts under a minute per deploy. Letting the CDN cache
