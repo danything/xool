@@ -3,6 +3,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: xool-db
   namespace: xool
+  annotations:
+    # **DB はファイルとして取らない。** Pod 側の k8up.io/backupcommand が
+    # 整合したコピーを標準出力に出しているので、そちらだけで足りる。
+    k8up.io/backup: "false"
 spec:
   accessModes:
     - ReadWriteOnce
@@ -18,6 +22,10 @@ kind: PersistentVolumeClaim
 metadata:
   name: xool-assets
   namespace: xool
+  annotations:
+    # ファイルとして k8up に取らせる(apps/k8up の Schedule が拾う)。
+    # 書き換わっても部分的に古いだけで壊れない類い。
+    k8up.io/backup: "true"
 spec:
   accessModes:
     - ReadWriteOnce
