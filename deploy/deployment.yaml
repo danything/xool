@@ -27,6 +27,21 @@ spec:
     metadata:
       labels:
         app: xool
+      annotations:
+        # k8up runs this in the pod and stores whatever it writes to stdout.
+        # serialize() reads through SQLite's pager, so the copy is one committed
+        # state even while the app keeps writing. Copying the files instead can
+        # catch xool.db and xool.db-wal at different moments -- the reason the
+        # host-side backup has to scale this deployment down first, which is not
+        # possible once the node is Talos and has no shell.
+        #
+        # bun:sqlite is built into the runtime that is already here, so the image
+        # needs nothing added. Keep the script free of spaces: k8up splits the
+        # annotation shell-style, and the quoting only has to hold for the two
+        # spaces around -e.
+        k8up.io/backupcommand: >-
+          bun -e 'process.stdout.write(new(require("bun:sqlite").Database)("/usr/src/app/data/xool.db",{readonly:true}).serialize())'
+        k8up.io/file-extension: .db
     spec:
       # The volumes are created by whichever uid the image ran as at the time,
       # and that moved from 999 to 1000 when the base image went to Bun 1.4 --
