@@ -185,8 +185,12 @@ async function toggleSummary(event: Event) {
 					</div>
 				{:else}
 					<div class="who">
+						<!--
+							slice(0,1) だと UTF-16 の単位で切るので、絵文字始まりの表示名
+							(𝕏 では珍しくない)が壊れる。コードポイントで取る
+						-->
 						<span class="av" aria-hidden="true">
-							{(ret?.data?.name ?? "?").slice(0, 1)}
+							{[...(ret?.data?.name ?? "?")][0]}
 						</span>
 						<div>
 							<div class="name">{ret?.data?.name}</div>
