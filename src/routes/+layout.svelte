@@ -48,6 +48,8 @@ if (browser) {
 	/>
 </svelte:head>
 
+<!-- 上に1本だけ色を通す。𝕏 の黒から主色へ -->
+<div class="band"></div>
 <nav>
 	<div class="page bar">
 		<div class="grow">
@@ -66,6 +68,10 @@ if (browser) {
 <Toast />
 
 <style>
+.band {
+	height: 3px;
+	background: linear-gradient(to right, #000, var(--pico-primary));
+}
 .bar {
 	display: flex;
 	align-items: center;

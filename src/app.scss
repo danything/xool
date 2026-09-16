@@ -69,6 +69,10 @@
 	 */
 	--ui-warn: #a45a06;
 	--ui-info: var(--pico-primary);
+	--ui-ok: var(--pico-ins-color);
+	--ui-shadow: var(--pico-card-box-shadow);
+	/* 主色を薄く敷くとき(見出しの上の小さな札)に使う */
+	--ui-tint: color-mix(in srgb, var(--pico-primary) 12%, var(--pico-background-color));
 	/* 注意書きと札の地。地の色に混ぜるので、明暗どちらでも浮かない */
 	--ui-err-bg: color-mix(in srgb, var(--ui-err) 12%, var(--pico-background-color));
 	--ui-warn-bg: color-mix(in srgb, var(--ui-warn) 12%, var(--pico-background-color));
@@ -254,6 +258,29 @@ textarea {
 }
 .check input {
 	margin: 0;
+}
+
+/* ---- 箱 ---- */
+.panel {
+	border: 1px solid var(--ui-base-300);
+	border-radius: var(--pico-border-radius);
+	background: var(--ui-surface);
+	box-shadow: var(--ui-shadow);
+}
+/* 中身を縦に積む箱。**同じ要素に付ける**ので子孫ではなく複合で書く */
+.panel.body {
+	display: flex;
+	flex-direction: column;
+	gap: 0.7rem;
+	padding: 1rem;
+}
+
+/* ---- 並べ方 ---- */
+.cluster {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 0.5rem;
 }
 
 /* ---- 注意書き ---- */
