@@ -179,10 +179,6 @@ export function summaryText(
 	return [...lines, ...tail].join("\n");
 }
 
-function signed(value: number): string {
-	return value > 0 ? `+${value}` : `${value}`;
-}
-
 /**
  * Reports one JST day and notes what x.com charged for it. Whether it actually
  * posted is the return value.
