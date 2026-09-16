@@ -71,6 +71,47 @@ function streakEndingOn(userKey: string, date: string): number {
 	return streak;
 }
 
+/**
+ * x.com の数える長さ。**日本語は1文字が2**、ASCII は1、絵文字はひとまとまりで2。
+ * 上限は 280 で、超えると投稿そのものが弾かれる。
+ */
+export function weightedLength(text: string): number {
+	let total = 0;
+	for (const ch of text) {
+		const code = ch.codePointAt(0) ?? 0;
+		const light =
+			code <= 0x10ff ||
+			(code >= 0x2000 && code <= 0x200d) ||
+			(code >= 0x2010 && code <= 0x201f) ||
+			(code >= 0x2032 && code <= 0x2037);
+		total += light ? 1 : 2;
+	}
+	return total;
+}
+
+/** 上限。実際の 280 まで詰めず、絵文字の数え方の差を吸収する余白を残す */
+const LIMIT = 260;
+
+/**
+ * ツイ廃度。**件数だけで決める。**反応の多寡は本人の努力と関係ない日もあるので、
+ * 順位付けに使わない。煽りにならない範囲で段を付ける
+ */
+function rank(posts: number): { mark: string; label: string } {
+	if (posts >= 51) return { mark: "💀", label: "重症" };
+	if (posts >= 21) return { mark: "🚨", label: "危険域" };
+	if (posts >= 11) return { mark: "⚡", label: "予備軍" };
+	if (posts >= 6) return { mark: "💬", label: "おしゃべり" };
+	if (posts >= 3) return { mark: "☕", label: "ふつう" };
+	return { mark: "🌱", label: "ひかえめ" };
+}
+
+/** 前日比。増減が一目で分かるよう矢印を付ける */
+function trend(value: number): string {
+	if (value > 0) return ` ↗ +${value}`;
+	if (value < 0) return ` ↘ ${value}`;
+	return " → ±0";
+}
+
 export function summaryText(
 	date: string,
 	posts: OwnPost[],
@@ -78,11 +119,16 @@ export function summaryText(
 ): string {
 	const { previous, streak = 0, partial = false } = options;
 	const [, month, day] = date.split("-");
-	const heading = partial
-		? `${Number(month)}月${Number(day)}日のポスト (0:00〜現在): ${posts.length}件`
-		: `${Number(month)}月${Number(day)}日のポスト: ${posts.length}件`;
-	// Reaction lines full of zeroes say nothing about a day nobody posted on.
-	if (posts.length === 0) return [heading, "", "#ポスト通信簿"].join("\n");
+	const when = `${Number(month)}/${Number(day)}のポスト${partial ? "(0:00〜現在)" : ""}`;
+
+	// 0 件の日は反応の行を並べても全部ゼロで、読む人に何も伝わらない
+	if (posts.length === 0)
+		return [
+			`📊 ${when} 0件`,
+			"🌙 今日はまだ静かです",
+			"",
+			"#ポスト通信簿",
+		].join("\n");
 
 	const total = (pick: (post: OwnPost) => number | undefined) =>
 		posts.reduce((sum, post) => sum + (pick(post) ?? 0), 0);
@@ -103,26 +149,34 @@ export function summaryText(
 	const diff =
 		previous === undefined || partial
 			? ""
-			: ` (前日比 ${signed(posts.length - previous.posts)})`;
-	// The reaction line always goes in -- it is what the post is for, and zeroes
-	// are an answer. The rest only earn their place when they have something to
-	// say, because each one spends part of a post nobody asked to be long.
-	const lines = [
-		`${heading}${diff}`,
-		replies > 0 && `うちリプライ ${replies}件`,
-		`いいね ${n(likes)}・リポスト ${n(reposts)}・返信 ${n(replied)}・ブックマーク ${n(bookmarks)}`,
+			: trend(posts.length - previous.posts);
+	const { mark, label } = rank(posts.length);
+
+	// 見出しと反応は必ず入れる。**反応がこの投稿の本体**で、ゼロもひとつの答え
+	const head = [
+		`📊 ${when} ${posts.length}件${replies > 0 ? `(リプ${replies})` : ""}${diff}`,
+		`${mark} ツイ廃度: ${label}`,
+		`❤️ ${n(likes)}  🔁 ${n(reposts)}  💬 ${n(replied)}  🔖 ${n(bookmarks)}`,
+	];
+	// 以下は言うことがある日だけ。**上から順に入るだけ入れる** —
+	// 280 を超えると投稿ごと弾かれるので、長さで落とす順番を決めておく
+	const extras = [
 		impressions > 0 &&
-			`インプレッション ${n(impressions)} (平均 ${n(Math.round(impressions / posts.length))}・最高 ${n(best)})`,
+			`👀 ${n(impressions)} (平均${n(Math.round(impressions / posts.length))} 最高${n(best)})`,
+		streak > 1 && `🔥 ${streak}日連続`,
 		profileClicks + linkClicks > 0 &&
-			`プロフィールクリック ${n(profileClicks)}・リンククリック ${n(linkClicks)}`,
-		streak > 1 && `${streak}日連続でポスト中`,
+			`🔗 プロフ ${n(profileClicks)}  リンク ${n(linkClicks)}`,
 	].filter((line) => typeof line === "string");
 
-	return [...lines, "", "#ポスト通信簿"].join("\n");
-}
+	const tail = ["", "#ポスト通信簿"];
+	const lines = [...head];
+	for (const line of extras) {
+		const next = [...lines, line, ...tail].join("\n");
+		if (weightedLength(next) > LIMIT) break;
+		lines.push(line);
+	}
 
-function signed(value: number): string {
-	return value > 0 ? `+${value}` : `${value}`;
+	return [...lines, ...tail].join("\n");
 }
 
 /**
