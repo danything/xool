@@ -103,7 +103,8 @@ jobs:
 
           # The status can take a moment to land against the PR, so fall back to
           # auto-merge, which fires whenever protection is eventually satisfied.
-          gh pr merge "$branch" --merge || gh pr merge "$branch" --auto --merge
+          # squash のみ許可の設定なので --merge は "Merge commits are not allowed" で落ちる
+          gh pr merge "$branch" --squash || gh pr merge "$branch" --auto --squash
         env:
           REGISTRY: ${{ env.REGISTRY }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
