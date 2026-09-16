@@ -3,7 +3,7 @@ import { browser } from "$app/environment";
 import { afterNavigate, beforeNavigate } from "$app/navigation";
 import { updated } from "$app/state";
 import Toast from "$lib/components/Toast.svelte";
-import "../app.css";
+import "../app.scss";
 
 let { children, data } = $props();
 
@@ -48,14 +48,14 @@ if (browser) {
 	/>
 </svelte:head>
 
-<nav class="navbar px-0">
-	<div class="page-container flex items-center">
-		<div class="flex-1">
-			<a class="btn btn-ghost text-xl" href="/">ポスト通信簿</a>
+<nav>
+	<div class="page bar">
+		<div class="grow">
+			<a class="button ghost brand" href="/">ポスト通信簿</a>
 		</div>
 		{#if data.isAdmin}
-			<div class="flex-none">
-				<a class="btn btn-ghost btn-sm" href="/admin">管理</a>
+			<div>
+				<a class="button ghost mini" href="/admin">管理</a>
 			</div>
 		{/if}
 	</div>
@@ -64,3 +64,23 @@ if (browser) {
 	{@render children()}
 </main>
 <Toast />
+
+<style>
+.bar {
+	display: flex;
+	align-items: center;
+	/* 中の余白はボタン側で持つので、ここでは横に付けない(下の .brand を参照) */
+	padding-inline: 0;
+	padding-block: 0.5rem;
+	min-height: 4rem;
+}
+/*
+ * 見出しの文字を本文と同じ位置に揃える。本文は左右 1rem の余白を持つので、
+ * こちらは枠ではなくボタンの内側余白で同じ 1rem を作る
+ */
+.brand {
+	padding-block: 0;
+	padding-inline: 1rem;
+	font-size: 1.25rem;
+}
+</style>

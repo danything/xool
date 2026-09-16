@@ -1,0 +1,348 @@
+/*
+ * 見た目は Pico CSS(v2)。使う部品だけを SCSS で読み込む。
+ *
+ * **Tailwind + daisyUI をやめた。** 出てくる部品は箱・札・ボタン・入力欄くらいで、
+ * utility class を並べるより素の HTML を整えるほうが小さく、後から読んで分かる
+ * (denpa・トドロク・tama・worklog・noren と同じ構成)。
+ *
+ * **色は Pico の既定のまま使う。** 元のテーマの色は写さない。
+ * --ui-* は Pico の変数から引いてあるので、明暗の切り替えにもそのまま追従する。
+ */
+@use "@picocss/pico/scss/pico" with (
+	$enable-semantic-container: false,
+	$enable-responsive-typography: false,
+	$enable-responsive-spacings: false,
+	$modules: (
+		"layout/landmarks": false,
+		"content/figure": false,
+		"forms/input-color": false,
+		"forms/input-range": false,
+		"forms/input-file": false,
+		"components/accordion": false,
+		/*
+		 * **card は切らない。** --pico-card-background-color と --pico-card-box-shadow は
+		 * このモジュールが有効なときだけ Pico が出力する。切ると下の .tag の地が
+		 * 空になり、札が透明になる(明暗どちらの値も一緒に消える)
+		 */
+		"components/dropdown": false,
+		"components/nav": false,
+		"components/tooltip": false
+	)
+);
+
+:root {
+	/* Web フォントは束ねない(1 家族 1.3MB を全員に落とさせる価値が無い)。Windows なら
+	   BIZ UDPGothic、mac なら ヒラギノ、それ以外は OS の日本語フォント */
+	--pico-font-family-sans-serif: "BIZ UDPGothic", "Hiragino Sans", "Yu Gothic UI", "Noto Sans JP",
+		system-ui, sans-serif;
+	--pico-font-family-monospace: "MesloLGS NF", ui-monospace, monospace;
+	--pico-font-size: 16px;
+	--pico-line-height: 1.7;
+	--pico-spacing: 1rem;
+	--pico-typography-spacing-vertical: 0.8rem;
+	--pico-form-element-spacing-vertical: 0.5rem;
+	--pico-form-element-spacing-horizontal: 0.75rem;
+	--pico-border-radius: 0.5rem;
+	/*
+	 * 中身の幅。半端な数字なのは、本文 65 文字分の幅をフォントに依らない長さへ
+	 * 固定したもののため。`ch` は "0" の幅で、BIZ UDPGothic は約 0.76em、
+	 * フォールバックの sans-serif は約 0.56em。`ch` のままだと日本語フォントが
+	 * 届くまで 210px ほど狭く描かれ、届いた瞬間に幅が飛ぶ
+	 */
+	--ui-width: 49.5rem;
+}
+
+/*
+ * この app.scss で使う色は**すべて Pico の変数から引く**。自前の色を持たないので、
+ * Pico 側の明暗の切り替え(prefers-color-scheme / data-theme)にそのまま追従する
+ */
+:root {
+	--ui-surface: var(--pico-card-background-color);
+	--ui-base-200: var(--pico-code-background-color);
+	--ui-base-300: var(--pico-muted-border-color);
+	--ui-muted: var(--pico-muted-color);
+	--ui-err: var(--pico-del-color);
+	--ui-warn: #a45a06;
+	--ui-info: var(--pico-primary);
+	/* 注意書きと札の地。地の色に混ぜるので、明暗どちらでも浮かない */
+	--ui-err-bg: color-mix(in srgb, var(--ui-err) 12%, var(--pico-background-color));
+	--ui-warn-bg: color-mix(in srgb, var(--ui-warn) 12%, var(--pico-background-color));
+	--ui-info-bg: color-mix(in srgb, var(--ui-info) 12%, var(--pico-background-color));
+}
+
+html {
+	font-size: var(--pico-font-size);
+}
+body {
+	margin: 0;
+	background: var(--pico-background-color);
+	/* 日本語を文節で折り返す */
+	word-break: auto-phrase;
+	line-break: strict;
+	-webkit-font-smoothing: antialiased;
+	-moz-osx-font-smoothing: grayscale;
+}
+p,
+li,
+dd {
+	text-wrap: pretty;
+}
+
+/* Pico は段落・入力欄の下に大きな余白を付ける。並べ方は各画面の gap で決めるので外す */
+input:not([type="checkbox"], [type="radio"]),
+select,
+textarea,
+button,
+[type="button"],
+[type="submit"],
+[role="button"],
+fieldset,
+figure,
+table,
+p,
+ul,
+ol,
+dl,
+dt,
+dd,
+h1,
+h2,
+h3,
+h4,
+label,
+details,
+article,
+blockquote,
+hgroup {
+	margin-bottom: 0;
+}
+h1,
+h2,
+h3,
+h4 {
+	--pico-font-weight: 700;
+	line-height: 1.3;
+}
+h1 {
+	font-size: 1.6rem;
+}
+h2 {
+	font-size: 1.2rem;
+}
+h3 {
+	font-size: 1rem;
+}
+
+/* ---- 幅 ---- */
+.page {
+	width: 100%;
+	max-width: var(--ui-width);
+	margin-inline: auto;
+	padding-inline: 1rem;
+}
+
+/* ---- ボタン。指で押せる大きさを下限にする ---- */
+button,
+[type="button"],
+[type="submit"],
+[role="button"],
+a.button {
+	min-height: 2.5rem;
+	font-size: 0.925rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+a.button {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	gap: 0.4rem;
+	border: var(--pico-border-width) solid var(--pico-primary-border);
+	border-radius: var(--pico-border-radius);
+	padding: var(--pico-form-element-spacing-vertical) var(--pico-form-element-spacing-horizontal);
+	background: var(--pico-primary-background);
+	color: var(--pico-primary-inverse);
+	line-height: var(--pico-line-height);
+	text-decoration: none;
+}
+a.button:hover {
+	border-color: var(--pico-primary-hover-border);
+	background: var(--pico-primary-hover-background);
+	color: var(--pico-primary-inverse);
+}
+/* 色を持たないボタン。この画面に「主役の操作」は無いので、既定はこちらを使う */
+button.plain,
+a.button.plain {
+	border-color: var(--ui-base-300);
+	background: var(--ui-base-200);
+	color: inherit;
+}
+button.plain:hover,
+a.button.plain:hover {
+	border-color: var(--ui-muted);
+	background: var(--ui-base-300);
+	color: inherit;
+}
+a.button.ghost,
+button.ghost {
+	border-color: transparent;
+	background: transparent;
+	color: inherit;
+}
+a.button.ghost:hover,
+button.ghost:hover {
+	border-color: transparent;
+	background: var(--ui-base-200);
+	color: inherit;
+}
+/* 取り消せない操作(削除・解除)にだけ赤を使う */
+button.danger,
+a.button.danger {
+	border-color: transparent;
+	background: transparent;
+	color: var(--ui-err);
+}
+button.danger:hover,
+a.button.danger:hover {
+	border-color: var(--ui-err);
+	background: var(--ui-err-bg);
+	color: var(--ui-err);
+}
+/*
+ * 大きさの上書き。**a.button と同じ強さで書く。** `.mini` 単独だと詳細度が
+ * a.button(0,1,1)に負けて、<a class="button mini"> で効かない
+ */
+.mini,
+a.button.mini {
+	min-height: 2rem;
+	padding: 0.15rem 0.6rem;
+	font-size: 0.8rem;
+}
+
+/* ---- 入力欄 ---- */
+label {
+	font-size: 0.9rem;
+}
+input,
+select,
+textarea {
+	font-size: 0.925rem;
+}
+/* チェックボックスは指で押せるように、ラベルごと当たり判定にする */
+.check {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.4rem;
+	min-height: 2rem;
+	cursor: pointer;
+	font-size: 0.9rem;
+}
+.check input {
+	margin: 0;
+}
+
+/* ---- 注意書き ---- */
+.note {
+	display: flex;
+	align-items: center;
+	gap: 0.6rem;
+	border: 1px solid var(--ui-base-300);
+	border-left: 4px solid var(--ui-muted);
+	border-radius: var(--pico-border-radius);
+	background: var(--ui-base-200);
+	padding: 0.7rem 0.9rem;
+	font-size: 0.9rem;
+}
+.note.warn {
+	border-color: var(--ui-warn-bg);
+	border-left-color: var(--ui-warn);
+	background: var(--ui-warn-bg);
+}
+.note.err {
+	border-color: var(--ui-err-bg);
+	border-left-color: var(--ui-err);
+	background: var(--ui-err-bg);
+}
+.note.info {
+	border-color: var(--ui-info-bg);
+	border-left-color: var(--ui-info);
+	background: var(--ui-info-bg);
+}
+
+/* ---- 札 ---- */
+.tag {
+	display: inline-flex;
+	align-items: center;
+	gap: 0.25rem;
+	border: 1px solid var(--ui-base-300);
+	border-radius: 999px;
+	background: var(--ui-surface);
+	padding: 0.1rem 0.6rem;
+	color: var(--ui-muted);
+	font-size: 0.78rem;
+	font-weight: 700;
+	white-space: nowrap;
+}
+.tag.warn {
+	border-color: transparent;
+	background: var(--ui-warn-bg);
+	color: var(--ui-warn);
+}
+
+/* ---- 表 ---- */
+table {
+	font-size: 0.75rem;
+}
+th,
+td {
+	padding: 0.5rem 0.75rem;
+	vertical-align: middle;
+}
+/*
+ * 見出しは地色を敷かず、字を薄くして本体と分ける。**折り返させない。**
+ * 幅が足りないとき、ブラウザは列を無理に狭めて1文字ずつ折り返す
+ */
+thead th {
+	color: var(--ui-muted);
+	font-size: 0.875rem;
+	font-weight: 600;
+	white-space: nowrap;
+}
+/* 表は狭い画面で横に流す */
+.scroll-x {
+	overflow-x: auto;
+}
+
+/* ---- 小物 ---- */
+.muted {
+	color: var(--ui-muted);
+}
+.small {
+	font-size: 0.875rem;
+}
+.mono {
+	font-family: var(--pico-font-family-monospace);
+}
+.grow {
+	flex: 1 1 auto;
+}
+/* 読み込み中の丸。ボタンの中にも置ける */
+.spin {
+	display: inline-block;
+	width: 1em;
+	height: 1em;
+	border: 2px solid currentColor;
+	border-right-color: transparent;
+	border-radius: 999px;
+	animation: ui-spin 0.8s linear infinite;
+}
+@keyframes ui-spin {
+	to {
+		transform: rotate(360deg);
+	}
+}
+@media (prefers-reduced-motion: reduce) {
+	.spin {
+		animation: none;
+	}
+}
