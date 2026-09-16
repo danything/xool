@@ -42,24 +42,24 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
  * (summary.ts の組み立てに合わせてある)。繋ぐ前に何が流れるか分かるようにするため。
  */
 const SAMPLE = [
-	"9月15日のポスト: 4件 (前日比 +1)",
-	"うちリプライ 1件",
-	"いいね 128・リポスト 12・返信 8・ブックマーク 3",
-	"インプレッション 12,400 (平均 3,100・最高 6,800)",
-	"プロフィールクリック 24・リンククリック 9",
-	"5日連続でポスト中",
+	"📊 9/15のポスト 4件(リプ1) ↗ +1",
+	"☕ ツイ廃度: ふつう",
+	"❤️ 128  🔁 12  💬 8  🔖 3",
+	"👀 12,400 (平均3,100 最高6,800)",
+	"🔥 5日連続",
+	"🔗 プロフ 24  リンク 9",
 	"",
 	"#ポスト通信簿",
 ].join("\n");
 
 /** 通信簿に出る指標。色は意味で決める(反応=桃、伸び=青、行動=緑) */
 const METRICS = [
-	{ label: "いいね", tone: "pink" },
-	{ label: "リポスト", tone: "green" },
-	{ label: "返信", tone: "blue" },
-	{ label: "ブックマーク", tone: "amber" },
-	{ label: "インプレッション", tone: "violet" },
-	{ label: "プロフィール・リンククリック", tone: "teal" },
+	{ mark: "❤️", label: "いいね", tone: "pink" },
+	{ mark: "🔁", label: "リポスト", tone: "green" },
+	{ mark: "💬", label: "返信", tone: "blue" },
+	{ mark: "🔖", label: "ブックマーク", tone: "amber" },
+	{ mark: "👀", label: "インプレッション", tone: "violet" },
+	{ mark: "🔗", label: "プロフィール・リンククリック", tone: "teal" },
 ] as const;
 
 async function postNow() {
@@ -249,11 +249,12 @@ async function toggleSummary(event: Event) {
 			<h2>通信簿に出るもの</h2>
 			<ul>
 				{#each METRICS as m (m.label)}
-					<li class="tone-{m.tone}"><span class="dot" aria-hidden="true"></span>{m.label}</li>
+					<li class="tone-{m.tone}"><span aria-hidden="true">{m.mark}</span>{m.label}</li>
 				{/each}
 			</ul>
 			<p class="small muted">
-				前日比と連続ポスト日数も付きます。数字が0の行と、ポストが無かった日は出しません(1件 $0.015 かかるため)。
+				前日比・連続ポスト日数と、ポスト数で決まる<strong>ツイ廃度</strong>も付きます。
+				言うことが無い行と、ポストが無かった日は出しません(1件 $0.015 かかるため)。
 			</p>
 		</section>
 	{/if}
@@ -401,12 +402,6 @@ p {
 	padding: 0.2rem 0.75rem;
 	font-size: 0.85rem;
 	font-weight: 700;
-}
-.dot {
-	width: 0.6rem;
-	height: 0.6rem;
-	border-radius: 999px;
-	background: currentColor;
 }
 .tone-pink {
 	color: #d6336c;
