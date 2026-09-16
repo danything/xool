@@ -80,26 +80,26 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 });
 </script>
 
-<div class="page-container p-4">
-	<div class="stats stats-vertical sm:stats-horizontal mb-4">
-		<div class="stat">
-			<div class="stat-title">ログイン済みユーザー</div>
-			<div class="stat-value">{number.format(data.summary.users)}</div>
+<div class="page">
+	<div class="metrics">
+		<div class="metric">
+			<div class="lab">ログイン済みユーザー</div>
+			<div class="val">{number.format(data.summary.users)}</div>
 		</div>
-		<div class="stat">
-			<div class="stat-title">自動ポストON</div>
-			<div class="stat-value">{number.format(data.summary.enabled)}</div>
+		<div class="metric">
+			<div class="lab">自動ポストON</div>
+			<div class="val">{number.format(data.summary.enabled)}</div>
 		</div>
-		<div class="stat">
-			<div class="stat-title">𝕏への支払い (直近30日・推定)</div>
-			<div class="stat-value">{money.format(data.summary.cost)}</div>
+		<div class="metric">
+			<div class="lab">𝕏への支払い (直近30日・推定)</div>
+			<div class="val">{money.format(data.summary.cost)}</div>
 		</div>
 	</div>
 
 	{#if data.summary.failing.length > 0}
-		<div class="prose"><h4>失敗しているユーザー</h4></div>
-		<div class="overflow-x-auto">
-			<table class="table table-sm">
+		<div><h4>失敗しているユーザー</h4></div>
+		<div class="scroll-x">
+			<table>
 				<thead>
 					<tr>
 						<th scope="col">𝕏 ID</th>
@@ -120,9 +120,9 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 		</div>
 	{/if}
 
-	<div class="prose"><h4>日別 (直近30日)</h4></div>
-	<div class="overflow-x-auto">
-		<table class="table table-sm">
+	<div><h4>日別 (直近30日)</h4></div>
+	<div class="scroll-x">
+		<table>
 			<thead>
 				<tr>
 					<th scope="col">日付 (UTC)</th>
@@ -143,13 +143,13 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 						<td>{number.format(day.posts)}</td>
 						<td>
 							{#if day.reported === undefined}
-								<span class="opacity-40">-</span>
+								<span class="muted">-</span>
 							{:else if day.reported === day.posts}
 								{number.format(day.reported)}
 							{:else}
 								<!-- The estimate and the bill disagreeing is the one thing
 								     this column exists to show, so it does not whisper it. -->
-								<span class="badge badge-warning badge-sm">
+								<span class="tag warn">
 									{number.format(day.reported)}
 								</span>
 							{/if}
@@ -166,9 +166,9 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 		</table>
 	</div>
 
-	<div class="prose"><h4>ユーザーと権限</h4></div>
-	<div class="overflow-x-auto">
-		<table class="table table-sm">
+	<div><h4>ユーザーと権限</h4></div>
+	<div class="scroll-x">
+		<table>
 			<thead>
 				<tr>
 					<th scope="col">𝕏 ID</th>
@@ -181,20 +181,20 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 				{#each data.users as user (user.userKey)}
 					<tr>
 						<td>{user.socialId}</td>
-						<td class="font-mono opacity-60">{user.userKey.slice(0, 8)}…</td>
+						<td class="mono muted">{user.userKey.slice(0, 8)}…</td>
 						<td>
 							{#if user.fixed}
 								<!-- Named in the environment, so the app has no say in it. -->
-								<span class="badge badge-ghost badge-sm">環境変数</span>
+								<span class="tag">環境変数</span>
 							{:else}
 								<button
 									type="button"
-									class={`btn btn-xs ${user.admin ? "btn-error" : ""}`}
+									class={`mini ${user.admin ? "danger" : "plain"}`}
 									disabled={saving !== undefined}
 									onclick={() => setAdmin(user.userKey, !user.admin)}
 								>
 									{#if saving === user.userKey}
-										<span class="loading loading-spinner loading-xs"></span>
+										<span class="spin"></span>
 									{/if}
 									{user.admin ? "解除" : "付与"}
 								</button>
@@ -204,12 +204,12 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 							{#if !user.fixed}
 								<button
 									type="button"
-									class={`btn btn-xs ${armed === user.userKey ? "btn-error" : "btn-ghost"}`}
+									class={`mini ${armed === user.userKey ? "danger" : "ghost"}`}
 									disabled={saving !== undefined}
 									onclick={(event) => remove(event, user)}
 								>
 									{#if saving === user.userKey}
-										<span class="loading loading-spinner loading-xs"></span>
+										<span class="spin"></span>
 									{/if}
 									{armed === user.userKey ? "本当に削除" : "削除"}
 								</button>
@@ -223,3 +223,46 @@ const dateTime = new Intl.DateTimeFormat("ja-JP", {
 		</table>
 	</div>
 </div>
+
+<style>
+.page {
+	padding: 1rem;
+}
+/* 見出しだけを置いた囲みなので、上下に余白は付けない */
+h4 {
+	margin: 0;
+	font-size: 1rem;
+	font-weight: 600;
+}
+/* 数字の並び。狭い画面では縦、640px から横に並べる */
+.metrics {
+	display: grid;
+	margin-bottom: 1rem;
+}
+.metric {
+	padding: 1rem 1.5rem;
+}
+.metric:not(:last-child) {
+	border-bottom: 1px dashed var(--ui-base-300);
+}
+@media (min-width: 640px) {
+	.metrics {
+		grid-auto-flow: column;
+	}
+	.metric:not(:last-child) {
+		border-right: 1px dashed var(--ui-base-300);
+		border-bottom: none;
+	}
+}
+.lab {
+	color: var(--ui-muted);
+	font-size: 0.75rem;
+	white-space: nowrap;
+}
+.val {
+	font-size: 2rem;
+	font-weight: 800;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+</style>

@@ -26,10 +26,28 @@ $effect(() => {
 });
 </script>
 
-<div class={`toast transition-all ${isShow ? "" : "opacity-0"}`}>
+<div class="toast" class:hide={!isShow}>
 	{#each messageList as mes (mes.id)}
-		<div class="alert alert-info">
+		<div class="note info">
 			<span>{mes.text}</span>
 		</div>
 	{/each}
 </div>
+
+<style>
+/* 画面の右下に重ねる。中身は下から積む */
+.toast {
+	display: flex;
+	position: fixed;
+	right: 1rem;
+	bottom: 1rem;
+	flex-direction: column;
+	gap: 0.5rem;
+	width: max-content;
+	max-width: calc(100vw - 2rem);
+	transition: all 0.15s ease;
+}
+.toast.hide {
+	opacity: 0;
+}
+</style>

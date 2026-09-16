@@ -4,13 +4,8 @@ import type { Snippet } from "svelte";
 let { children }: { children: Snippet } = $props();
 </script>
 
-<div role="alert" class="alert alert-error mb-4">
-	<svg
-		xmlns="http://www.w3.org/2000/svg"
-		class="h-6 w-6 shrink-0 stroke-current"
-		fill="none"
-		viewBox="0 0 24 24"
-	>
+<div role="alert" class="note err">
+	<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 		<title>Danger</title>
 		<path
 			stroke-linecap="round"
@@ -21,3 +16,16 @@ let { children }: { children: Snippet } = $props();
 	</svg>
 	<span>{@render children()}</span>
 </div>
+
+<style>
+.note {
+	margin-bottom: 1rem;
+}
+/* 線画のアイコン。色は文字と揃える */
+svg {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+	stroke: currentColor;
+}
+</style>

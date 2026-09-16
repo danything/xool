@@ -82,21 +82,21 @@ async function toggleSummary(event: Event) {
 }
 </script>
 
-<div class="mx-auto p-4 prose">
+<div class="page">
 	{#if message !== undefined}
 		<ErrorAlert>{message}</ErrorAlert>
 	{:else if wkey !== undefined && keyInfo}
-		<label class="flex items-center gap-3 not-prose">
+		<label class="check">
 			<input
 				type="checkbox"
-				class="toggle toggle-primary"
+				role="switch"
 				checked={summary?.enabled}
 				disabled={saving}
 				onchange={toggleSummary}
 			/>
 			<span>毎日 0:00 (JST) に前日のポストをまとめて自動ポストする</span>
 		</label>
-		<p class="text-sm opacity-60">
+		<p class="small muted hint">
 			初めてONにしたときは、その時点までの当日分をすぐ投稿します。
 			<br />
 			自動ポストはポストが0件の日をスキップします (今すぐ投稿は0件でも投稿します)。リポストは数に含めません。
@@ -110,12 +110,12 @@ async function toggleSummary(event: Event) {
 			     is no way to see one again before midnight. -->
 			<button
 				type="button"
-				class="btn btn-sm not-prose"
+				class="mini plain"
 				disabled={postingNow}
 				onclick={postNow}
 			>
 				{#if postingNow}
-					<span class="loading loading-spinner loading-xs"></span>
+					<span class="spin"></span>
 				{/if}
 				今すぐ投稿
 			</button>
@@ -127,15 +127,10 @@ async function toggleSummary(event: Event) {
 			{#if ret?.error}
 				<ErrorAlert>{ret.error}</ErrorAlert>
 			{:else}
-				<h3 class="mt-6 mb-2">現在のアカウント</h3>
+				<h3>現在のアカウント</h3>
 				{#if ret?.status === 429}
-					<div role="alert" class="alert alert-warning">
-						<svg
-							xmlns="http://www.w3.org/2000/svg"
-							class="h-6 w-6 shrink-0 stroke-current"
-							fill="none"
-							viewBox="0 0 24 24"
-						>
+					<div role="alert" class="note warn">
+						<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
 							<title>Warning</title>
 							<path
 								stroke-linecap="round"
@@ -147,8 +142,8 @@ async function toggleSummary(event: Event) {
 						<span>ユーザー情報取得APIが上限に達しました</span>
 					</div>
 				{:else}
-					<div class="overflow-x-auto not-prose">
-						<table class="table text-base">
+					<div class="scroll-x">
+						<table>
 							<thead>
 								<tr>
 									<th scope="col">ID</th>
@@ -166,50 +161,77 @@ async function toggleSummary(event: Event) {
 						</table>
 					</div>
 				{/if}
-				<p class="text-sm opacity-60 mt-2">
+				<p class="small muted hint tight">
 					別のアカウントを使用する場合は下記で認証画面内でアカウント選択できます
 				</p>
 			{/if}
 
 	{/if}
 	<SignInButton />
-	<h3 class="mt-6 mb-2">運営費について</h3>
-	<p class="my-0">
+	<h3>運営費について</h3>
+	<p>
 		𝕏のAPIが従量課金のため、自動ポスト1件につき <strong>$0.015</strong>、集計の読み取りに1ポストあたり
 		<strong>$0.005</strong> かかり、運営者が負担しています。支えていただける方は
-		<a
-			class="link link-primary"
-			target="_blank"
-			href="https://ko-fi.com/yui5m"
-			rel="noreferrer"
-		>
-			Ko-fi
-		</a>
+		<a target="_blank" href="https://ko-fi.com/yui5m" rel="noreferrer"> Ko-fi </a>
 		へ。
 	</p>
-	<h3 class="mt-6 mb-2">プライバシー</h3>
-	<p class="my-0">
+	<h3>プライバシー</h3>
+	<p>
 		サーバに保存するのはUser ID・Access Token・Refresh
 		Tokenのみで、そのほかのユーザー情報は一切取得していません。
 	</p>
-	<p class="mt-3 mb-0 text-sm opacity-60">
+	<p class="small muted foot">
 		不具合の報告は
-		<a
-			class="link link-primary"
-			target="_blank"
-			href="https://x.com/5yuim"
-			rel="noreferrer"
-		>
-			@5yuim
-		</a>
+		<a target="_blank" href="https://x.com/5yuim" rel="noreferrer"> @5yuim </a>
 		へ ・
-		<a
-			class="link link-primary"
-			target="_blank"
-			href="https://github.com/danything/xool"
-			rel="noreferrer"
-		>
+		<a target="_blank" href="https://github.com/danything/xool" rel="noreferrer">
 			ソースコード
 		</a>
 	</p>
 </div>
+
+<style>
+.page {
+	padding: 1rem;
+}
+/* 自動ポストの入切はこの画面の主役なので、字は本文と同じ大きさのままにする */
+.check {
+	gap: 0.75rem;
+	font-size: 1rem;
+}
+h3 {
+	margin-top: 1.5rem;
+	margin-bottom: 0.5rem;
+	font-size: 1.25rem;
+	font-weight: 600;
+	line-height: 1.6;
+}
+/* 余白は下の hint / foot だけが持つ。それ以外の段落は見出しの余白に任せる */
+p {
+	margin: 0;
+}
+.hint {
+	margin-block: 1.1rem;
+}
+.hint.tight {
+	margin-top: 0.5rem;
+}
+.foot {
+	margin-top: 0.75rem;
+}
+/* 線画のアイコン。色は文字と揃える */
+svg {
+	flex-shrink: 0;
+	width: 1.5rem;
+	height: 1.5rem;
+	stroke: currentColor;
+}
+/* 1 行だけの表なので、字は本文と同じ大きさにして広めに取る */
+table {
+	font-size: 1rem;
+}
+th,
+td {
+	padding: 0.75rem 1rem;
+}
+</style>
