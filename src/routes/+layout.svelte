@@ -1,8 +1,8 @@
 <script lang="ts">
-import { browser } from "$app/environment";
+import Toast from "#lib/components/Toast.svelte";
+import { browser } from "$app/env";
 import { afterNavigate, beforeNavigate } from "$app/navigation";
 import { updated } from "$app/state";
-import Toast from "$lib/components/Toast.svelte";
 import "../app.scss";
 
 let { children, data } = $props();

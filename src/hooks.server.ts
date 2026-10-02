@@ -1,6 +1,6 @@
-import { building } from "$app/environment";
-import { postDueSummaries } from "$lib/server/summary";
-import { syncUsage } from "$lib/server/usage";
+import { postDueSummaries } from "#lib/server/summary.js";
+import { syncUsage } from "#lib/server/usage.js";
+import { building } from "$app/env";
 
 // The sweep is what makes this reliable: the check is idempotent and only ever
 // acts on a day that has already ended, so waking up every so often and asking

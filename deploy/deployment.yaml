@@ -86,7 +86,8 @@ spec:
             periodSeconds: 10
             failureThreshold: 6
           env:
-            # The origin comes from the request rather than a fixed ORIGIN, so
+            # The origin comes from the request rather than one fixed at build time
+            # (SvelteKit's paths.origin, which replaced ORIGIN), so
             # that this works the same behind the gateway as it does locally.
             - name: PROTOCOL_HEADER
               value: x-forwarded-proto

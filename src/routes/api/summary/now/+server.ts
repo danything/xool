@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import { getSummary, postToday } from "$lib/server/summary";
+import { getSummary, postToday } from "#lib/server/summary.js";
 import type { RequestHandler } from "./$types";
 
 // Asking for one on the spot. The automatic first post only happens once, so

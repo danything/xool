@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import db from "$lib/server/db";
+import db from "#lib/server/db.js";
 import type { RequestHandler } from "./$types";
 
 // Kubernetes probes this during a rolling update: a new pod only joins the
