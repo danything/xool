@@ -1,5 +1,5 @@
 import { redirect } from "@sveltejs/kit";
-import { callbackUrl } from "$lib/server/oauth";
+import { callbackUrl } from "#lib/server/oauth.js";
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = ({ url, cookies }) => {
@@ -18,5 +18,9 @@ export const GET: RequestHandler = ({ url, cookies }) => {
 		code_challenge_method: "plain",
 	});
 
-	redirect(302, `https://x.com/i/oauth2/authorize?${params.toString()}`);
+	// SvelteKit 3 refuses to redirect off-site unless told to. The destination is
+	// x.com's fixed authorize endpoint, not anything the user supplied.
+	redirect(302, `https://x.com/i/oauth2/authorize?${params.toString()}`, {
+		external: true,
+	});
 };

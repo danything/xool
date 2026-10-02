@@ -1,6 +1,6 @@
 <script lang="ts">
-import { invalidateAll } from "$app/navigation";
-import { setMessage } from "$lib/stores/toast.svelte";
+import { setMessage } from "#lib/stores/toast.svelte.js";
+import { refreshAll } from "$app/navigation";
 import type { PageProps } from "./$types";
 
 let { data }: PageProps = $props();
@@ -40,7 +40,7 @@ async function remove(event: MouseEvent, user: { userKey: string }) {
 	} catch (error) {
 		setMessage(error instanceof Error ? error.message : "削除できませんでした");
 	} finally {
-		await invalidateAll();
+		await refreshAll();
 		saving = undefined;
 	}
 }
@@ -60,7 +60,7 @@ async function setAdmin(userKey: string, admin: boolean) {
 	} catch (error) {
 		setMessage(error instanceof Error ? error.message : "変更できませんでした");
 	} finally {
-		await invalidateAll();
+		await refreshAll();
 		saving = undefined;
 	}
 }

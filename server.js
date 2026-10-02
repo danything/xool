@@ -6,16 +6,18 @@ import { handler } from "./handler.js";
 // served by one pod can ask the other for JavaScript it has never heard of. The
 // asset directory is a volume shared between them to fix that -- but SvelteKit
 // answers anything unmatched under /_app with a 404 before hooks run, and the
-// static handler it would otherwise use builds its file list once at startup,
-// so the older pod never sees a file the newer one dropped in after it booted.
+// static handler it would otherwise use only knows the files listed when this
+// build was made (adapter-node 6 bakes that list into the output), so the older
+// pod never sees a file the newer one dropped in after it was built.
 //
-// Hence this entry point instead of the adapter's. Everything below mirrors
-// the adapter's own sirv call in handler.js -- same precompression, same
-// Cache-Control -- and differs by one flag: `dev` makes sirv look a file up on
-// every request rather than indexing once. It forces `no-store` along with
-// that, which is exactly wrong for content-hashed filenames, so setHeaders puts
-// the real header back. There is no adapter option or environment variable that
-// reaches that flag, which is the whole reason this file exists.
+// Hence this entry point instead of the adapter's. Everything below matches
+// what the adapter's handler.js sends for these files -- precompressed
+// variants, the same immutable Cache-Control -- but looks each file up on every
+// request: that is sirv's `dev` flag. It forces `no-store` along with that,
+// which is exactly wrong for content-hashed filenames, so setHeaders puts the
+// real header back. There is no adapter option or environment variable that
+// serves files outside the build-time list, which is the whole reason this file
+// exists.
 const PREFIX = "/_app/immutable";
 const assets = sirv(`build/client${PREFIX}`, {
 	dev: true,
@@ -42,8 +44,8 @@ const server = http.createServer((req, res) => {
 });
 
 // Repeated from the adapter's index.js rather than inherited: a custom server
-// gets handler.js, which reads only ORIGIN, PROTOCOL_HEADER, HOST_HEADER,
-// PORT_HEADER, ADDRESS_HEADER, XFF_DEPTH and BODY_SIZE_LIMIT. SHUTDOWN_TIMEOUT
+// gets handler.js, which reads only PROTOCOL_HEADER, HOST_HEADER, PORT_HEADER,
+// ADDRESS_HEADER, XFF_DEPTH and BODY_SIZE_LIMIT. SHUTDOWN_TIMEOUT
 // belongs to the entry point, so honouring it is now this file's job. The pod
 // keeps answering what is already in flight while the Cilium Gateway stops
 // sending it anything new.

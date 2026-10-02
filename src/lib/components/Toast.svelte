@@ -1,5 +1,5 @@
 <script lang="ts">
-import { toastStore } from "$lib/stores/toast.svelte";
+import { toastStore } from "#lib/stores/toast.svelte.js";
 
 let messageList = $state<{ id: number; text: string }[]>([]);
 let isShow = $state(true);

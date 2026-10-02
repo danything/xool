@@ -1,8 +1,8 @@
 <script lang="ts">
-import { invalidateAll } from "$app/navigation";
-import ErrorAlert from "$lib/components/ErrorAlert.svelte";
-import SignInButton from "$lib/components/SignInButton.svelte";
-import { setMessage } from "$lib/stores/toast.svelte";
+import ErrorAlert from "#lib/components/ErrorAlert.svelte";
+import SignInButton from "#lib/components/SignInButton.svelte";
+import { setMessage } from "#lib/stores/toast.svelte.js";
+import { refreshAll } from "$app/navigation";
 
 type Props = {
 	message?: string;
@@ -75,7 +75,7 @@ async function postNow() {
 	} catch (error) {
 		setMessage(error instanceof Error ? error.message : "投稿できませんでした");
 	} finally {
-		await invalidateAll();
+		await refreshAll();
 		postingNow = false;
 	}
 }
@@ -104,7 +104,7 @@ async function toggleSummary(event: Event) {
 			error instanceof Error ? error.message : "設定を保存できませんでした",
 		);
 	} finally {
-		await invalidateAll();
+		await refreshAll();
 		saving = false;
 	}
 }

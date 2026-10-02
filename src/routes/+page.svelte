@@ -1,5 +1,5 @@
 <script lang="ts">
-import SummaryScreen from "$lib/components/SummaryScreen.svelte";
+import SummaryScreen from "#lib/components/SummaryScreen.svelte";
 import type { PageProps } from "./$types";
 
 let { data }: PageProps = $props();

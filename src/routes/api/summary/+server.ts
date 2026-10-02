@@ -1,5 +1,5 @@
 import { json } from "@sveltejs/kit";
-import { getSummary, postToday, setEnabled } from "$lib/server/summary";
+import { getSummary, postToday, setEnabled } from "#lib/server/summary.js";
 import type { RequestHandler } from "./$types";
 
 export const POST: RequestHandler = async ({ request, cookies }) => {

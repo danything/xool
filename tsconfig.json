@@ -1,16 +1,14 @@
 {
-	"extends": "./.svelte-kit/tsconfig.json",
+	"extends": "$app/tsconfig",
 	"compilerOptions": {
 		"rewriteRelativeImportExtensions": true,
-		"allowJs": true,
-		"checkJs": true,
-		"esModuleInterop": true,
-		"forceConsistentCasingInFileNames": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true,
+		// svelte-check --tsgo does not follow package.json "imports" into .svelte
+		// files, so `#lib/*.svelte` came out untyped and component props went
+		// unchecked. Mirroring the alias here lets it resolve them.
+		"paths": { "#lib/*": ["./src/lib/*"] },
 		"sourceMap": true,
 		"strict": true,
-		"moduleResolution": "bundler",
-		"types": ["bun"]
-	}
+		"types": ["bun", "$app/types"]
+	},
+	"include": ["src", "vite.config.ts"]
 }
