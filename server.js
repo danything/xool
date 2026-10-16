@@ -1,5 +1,4 @@
 import http from "node:http";
-import sirv from "sirv";
 import { handler } from "./handler.js";
 
 // A rollout runs two pods at once and every build renames its chunks, so a page
@@ -13,19 +12,7 @@ import { handler } from "./handler.js";
 // Hence this entry point instead of the adapter's. Everything below matches
 // what the adapter's handler.js sends for these files -- precompressed
 // variants, the same immutable Cache-Control -- but looks each file up on every
-// request: that is sirv's `dev` flag. It forces `no-store` along with that,
-// which is exactly wrong for content-hashed filenames, so setHeaders puts the
-// real header back. There is no adapter option or environment variable that
-// serves files outside the build-time list, which is the whole reason this file
-// exists.
 const PREFIX = "/_app/immutable";
-const assets = sirv(`build/client${PREFIX}`, {
-	dev: true,
-	brotli: true,
-	gzip: true,
-	setHeaders: (res) =>
-		res.setHeader("cache-control", "public,max-age=31536000,immutable"),
-});
 
 const host = process.env.HOST ?? "0.0.0.0";
 const port = Number(process.env.PORT ?? 3000);
@@ -34,13 +21,7 @@ const shutdownTimeout = Number(process.env.SHUTDOWN_TIMEOUT ?? 30);
 const server = http.createServer((req, res) => {
 	const url = req.url ?? "";
 	if (!url.startsWith(`${PREFIX}/`)) return handler(req, res);
-	// sirv resolves against its own root, so the prefix comes off -- and goes
-	// back on for the miss case, where SvelteKit gets the request after all.
 	req.url = url.slice(PREFIX.length);
-	assets(req, res, () => {
-		req.url = url;
-		handler(req, res);
-	});
 });
 
 // Repeated from the adapter's index.js rather than inherited: a custom server

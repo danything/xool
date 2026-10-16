@@ -4,11 +4,8 @@
   "workspaces": {
     "": {
       "name": "xool",
-      "dependencies": {
-        "@anyblades/blades": "^3.0.0",
-        "sirv": "^3.0.2",
-      },
       "devDependencies": {
+        "@anyblades/blades": "^3.0.0",
         "@biomejs/biome": "^2.5.15",
         "@sveltejs/adapter-node": "^6.0.0",
         "@sveltejs/kit": "^3.1.0",
