@@ -4,6 +4,9 @@
   "workspaces": {
     "": {
       "name": "xool",
+      "dependencies": {
+        "sirv": "^3.0.2",
+      },
       "devDependencies": {
         "@anyblades/blades": "^3.0.0",
         "@biomejs/biome": "^2.5.15",
