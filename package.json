@@ -10,18 +10,17 @@
 		"check": "biome check --write && svelte-kit sync && svelte-check --tsconfig ./tsconfig.json --tsgo"
 	},
 	"dependencies": {
+		"@anyblades/blades": "^3.0.0",
 		"sirv": "^3.0.2"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.5.15",
-		"@picocss/pico": "^2.1.1",
 		"@sveltejs/adapter-node": "^6.0.0",
 		"@sveltejs/kit": "^3.1.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
 		"@types/bun": "^1.4.3",
 		"@types/node": "^26.6.5",
 		"@typescript/native": "npm:typescript@7",
-		"sass-embedded": "^1.105.2",
 		"svelte": "^5.57.2",
 		"svelte-check": "^4.7.6",
 		"typescript": "~6.0.3",
