@@ -53,7 +53,7 @@ spec:
       securityContext:
         fsGroup: 1000
         fsGroupChangePolicy: OnRootMismatch
-      # preStop (5s) + SHUTDOWN_TIMEOUT (30s, honoured by server.js), plus room.
+      # preStop (5s) + SHUTDOWN_TIMEOUT (30s, honoured by adapter-node), plus room.
       terminationGracePeriodSeconds: 45
       containers:
         - name: xool
@@ -98,7 +98,7 @@ spec:
             # means nobody.
             - name: ADMIN_X_IDS
               value: "1021006412715921410"
-            # Read by server.js: finish serving in-flight requests before
+            # Read by adapter-node: finish serving in-flight requests before
             # exiting. Must stay under terminationGracePeriodSeconds above.
             - name: SHUTDOWN_TIMEOUT
               value: "30"
@@ -130,12 +130,7 @@ spec:
           volumeMounts:
             - name: xool-db
               mountPath: /usr/src/app/data
-            - name: xool-assets
-              mountPath: /usr/src/app/build/client/_app/immutable
       volumes:
         - name: xool-db
           persistentVolumeClaim:
             claimName: xool-db
-        - name: xool-assets
-          persistentVolumeClaim:
-            claimName: xool-assets
