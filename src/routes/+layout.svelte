@@ -3,7 +3,7 @@ import Toast from "#lib/components/Toast.svelte";
 import { browser } from "$app/env";
 import { afterNavigate, beforeNavigate } from "$app/navigation";
 import { updated } from "$app/state";
-import "../app.scss";
+import "../app.css";
 
 let { children, data } = $props();
 
