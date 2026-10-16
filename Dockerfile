@@ -24,13 +24,4 @@ USER bun
 COPY --from=prod-deps --chown=bun:bun /usr/src/app/node_modules ./node_modules
 COPY --from=builder   --chown=bun:bun /usr/src/app/package.json ./package.json
 COPY --from=builder   --chown=bun:bun /usr/src/app/build ./build
-# The served asset directory is a volume shared with the other pod during a
-# rollout, so this build's own copy is kept outside it and merged in at start.
-# Copied from the builder rather than duplicated here: WORKDIR belongs to root
-# and this stage has already dropped to bun.
-COPY --from=builder --chown=bun:bun /usr/src/app/build/client/_app/immutable ./immutable-src
-COPY --chmod=0755 docker-entrypoint.sh /usr/local/bin/xool-start
-# Serves the shared asset directory itself, ahead of SvelteKit. See server.js.
-COPY --chown=bun:bun server.js ./build/server.js
-ENTRYPOINT [ "/usr/local/bin/xool-start" ]
-CMD [ "build/server.js" ]
+CMD [ "build/index.js" ]
