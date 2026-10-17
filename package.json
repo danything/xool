@@ -2,7 +2,7 @@
 	"name": "xool",
 	"version": "0.1.0",
 	"devDependencies": {
-		"@anyblades/blades": "^3.0.0",
+		"@anyblades/blades": "3.1.0-alpha.1",
 		"@biomejs/biome": "^2.5.15",
 		"@sveltejs/adapter-bun": "^1.0.0",
 		"@sveltejs/kit": "^3.1.0",

@@ -1,4 +1,30 @@
-@import "@anyblades/blades/pico" layer(pico);
+/*
+ * Pico は使う部品だけ読み込む(全部入りだと CSS の大半が使わない部品になる)。
+ * 順番は variables → layout → content → forms → components → utilities を崩さない。
+ * 外したもの(画面に該当する要素もクラスも無い):
+ * layout の container / grid / overflow-auto、
+ * forms の input-color / input-datetime / input-file / input-range / input-search、
+ * components の accordion / card / dropdown / group / loading / modal / progress / tooltip。
+ * <details> <dialog> <article> や aria-busy・data-tooltip などを使い始めるときは、ここに足す。
+ * content の misc は画面に無くても残す。hidden 属性を display: none で隠すのはこれで、
+ * 外すと display を持つこちらの規則(.note など)に付けた hidden が効かなくなり、しかも気づきにくい
+ */
+@import "@anyblades/blades/pico/variables" layer(pico);
+@import "@anyblades/blades/pico/layout/document" layer(pico);
+@import "@anyblades/blades/pico/layout/landmarks" layer(pico);
+@import "@anyblades/blades/pico/layout/section" layer(pico);
+@import "@anyblades/blades/pico/content/typography" layer(pico);
+@import "@anyblades/blades/pico/content/link" layer(pico);
+@import "@anyblades/blades/pico/content/button" layer(pico);
+@import "@anyblades/blades/pico/content/table" layer(pico);
+@import "@anyblades/blades/pico/content/embedded-content" layer(pico);
+@import "@anyblades/blades/pico/content/code" layer(pico);
+@import "@anyblades/blades/pico/content/figure" layer(pico);
+@import "@anyblades/blades/pico/content/misc" layer(pico);
+@import "@anyblades/blades/pico/forms/basics" layer(pico);
+@import "@anyblades/blades/pico/forms/checkbox-radio-switch" layer(pico);
+@import "@anyblades/blades/pico/components/nav" layer(pico);
+@import "@anyblades/blades/pico/utilities" layer(pico);
 
 :root {
 	/* Web フォントは束ねない(1 家族 1.3MB を全員に落とさせる価値が無い)。Windows なら BIZ UDPGothic、mac なら ヒラギノ、それ以外は OS の日本語フォント */
