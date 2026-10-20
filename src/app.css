@@ -1,13 +1,25 @@
 /*
- * Pico は使う部品だけ読み込む(全部入りだと CSS の大半が使わない部品になる)。
- * 順番は variables → layout → content → forms → components → utilities を崩さない。
+ * Pico(Blades)は使う部品だけ、使う場所で読み込む(全部入りだと CSS の大半が使わない部品になる)。
+ * 部品は layered/* を使うので @layer blades に入り、層に入れていないこちらの規則が詳細度に関係なく必ず勝つ。
+ * ここ(全画面で読む)に置くのは共通の土台だけ。順番は variables → layout → content → forms → components → utilities を崩さない。
+ * 一部の画面でしか描かない要素の部品は、その要素を描くコンポーネントの <script> で import する:
+ * content の table は routes/admin/+page.svelte(<table>)、code と figure は SummaryScreen.svelte(見本の <figure> と <pre>)。
+ * <style> の中で @import してはいけない(部品がそのコンポーネント用に scoped され、使う所ごとに複製される)。
+ * 画面ごとの CSS は同じ層の中でもここより後ろに来るので、Pico で後ろにある部品(utilities など)と
+ * 同じ要素の同じ性質を書く部品は動かさない。forms の checkbox-radio-switch は SummaryScreen でしか使わないがここに残す。
+ * [type="checkbox"] の cursor: pointer が utilities の [disabled] の cursor: not-allowed と詳細度が同じで、
+ * 後ろに回ると保存中(disabled)のスイッチが指の形に戻る。forms の basics はそれが前提にするのでここ。
+ * components の nav は +layout.svelte の <nav> で全画面に出るのでここ。
+ * 部品を足すときは、その要素(<details> <dialog> や aria-busy・data-tooltip など)を描くコンポーネントの <script> に
+ * import "@anyblades/blades/layered/<部品>"; を書く。部品は前提の部品を読み込まない(modal は card、group と dropdown は
+ * content の button と forms の basics、forms の追加分は basics が前提)ので、前提がここに無ければ並べて import する。
+ * ほぼ全画面で使う部品、ここの CSS が --pico-* を引く部品、上の順番でぶつかる部品はここに足す。
  * 外したもの(画面に該当する要素もクラスも無い):
  * layout の landmarks / container / grid / overflow-auto(landmarks は body > main に余白を付けるだけで、
  * SvelteKit は画面を <div style="display: contents"> で包むので当たらない。body と main の
  * 初期化は 3.1.0-beta.2 から document にある)、
  * forms の input-color / input-datetime / input-file / input-range / input-search、
  * components の accordion / dropdown / group / loading / modal / progress / tooltip。
- * <details> <dialog> や aria-busy・data-tooltip などを使い始めるときは、ここに足す。
  * components の card は <article> が画面に無くても残す。下の --ui-surface / --ui-shadow が引く
  * --pico-card-background-color / --pico-card-box-shadow は 3.1.0-alpha.2 から variables ではなく
  * card で定義されていて、外すと未定義になり .panel と .tag の地と影が消える(build は通るので気づきにくい)。
@@ -15,22 +27,19 @@
  * content の misc は画面に無くても残す。hidden 属性を display: none で隠すのはこれで、
  * 外すと display を持つこちらの規則(.note など)に付けた hidden が効かなくなり、しかも気づきにくい
  */
-@import "@anyblades/blades/pico/variables" layer(pico);
-@import "@anyblades/blades/pico/layout/document" layer(pico);
-@import "@anyblades/blades/pico/layout/section" layer(pico);
-@import "@anyblades/blades/pico/content/typography" layer(pico);
-@import "@anyblades/blades/pico/content/link" layer(pico);
-@import "@anyblades/blades/pico/content/button" layer(pico);
-@import "@anyblades/blades/pico/content/table" layer(pico);
-@import "@anyblades/blades/pico/content/embedded-content" layer(pico);
-@import "@anyblades/blades/pico/content/code" layer(pico);
-@import "@anyblades/blades/pico/content/figure" layer(pico);
-@import "@anyblades/blades/pico/content/misc" layer(pico);
-@import "@anyblades/blades/pico/forms/basics" layer(pico);
-@import "@anyblades/blades/pico/forms/checkbox-radio-switch" layer(pico);
-@import "@anyblades/blades/pico/components/card" layer(pico);
-@import "@anyblades/blades/pico/components/nav" layer(pico);
-@import "@anyblades/blades/pico/utilities" layer(pico);
+@import "@anyblades/blades/layered/variables";
+@import "@anyblades/blades/layered/layout/document";
+@import "@anyblades/blades/layered/layout/section";
+@import "@anyblades/blades/layered/content/typography";
+@import "@anyblades/blades/layered/content/link";
+@import "@anyblades/blades/layered/content/button";
+@import "@anyblades/blades/layered/content/embedded-content";
+@import "@anyblades/blades/layered/content/misc";
+@import "@anyblades/blades/layered/forms/basics";
+@import "@anyblades/blades/layered/forms/checkbox-radio-switch";
+@import "@anyblades/blades/layered/components/card";
+@import "@anyblades/blades/layered/components/nav";
+@import "@anyblades/blades/layered/utilities";
 
 :root {
 	/* Web フォントは束ねない(1 家族 1.3MB を全員に落とさせる価値が無い)。Windows なら BIZ UDPGothic、mac なら ヒラギノ、それ以外は OS の日本語フォント */
