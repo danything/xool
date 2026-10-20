@@ -2,7 +2,9 @@
  * Pico は使う部品だけ読み込む(全部入りだと CSS の大半が使わない部品になる)。
  * 順番は variables → layout → content → forms → components → utilities を崩さない。
  * 外したもの(画面に該当する要素もクラスも無い):
- * layout の container / grid / overflow-auto、
+ * layout の landmarks / container / grid / overflow-auto(landmarks は body > main に余白を付けるだけで、
+ * SvelteKit は画面を <div style="display: contents"> で包むので当たらない。body と main の
+ * 初期化は 3.1.0-beta.2 から document にある)、
  * forms の input-color / input-datetime / input-file / input-range / input-search、
  * components の accordion / dropdown / group / loading / modal / progress / tooltip。
  * <details> <dialog> や aria-busy・data-tooltip などを使い始めるときは、ここに足す。
@@ -15,7 +17,6 @@
  */
 @import "@anyblades/blades/pico/variables" layer(pico);
 @import "@anyblades/blades/pico/layout/document" layer(pico);
-@import "@anyblades/blades/pico/layout/landmarks" layer(pico);
 @import "@anyblades/blades/pico/layout/section" layer(pico);
 @import "@anyblades/blades/pico/content/typography" layer(pico);
 @import "@anyblades/blades/pico/content/link" layer(pico);
@@ -82,7 +83,6 @@ html {
 }
 
 body {
-	margin: 0;
 	background: var(--pico-background-color);
 	/* 日本語を文節で折り返す */
 	word-break: auto-phrase;
