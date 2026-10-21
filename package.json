@@ -3,7 +3,7 @@
 	"version": "0.1.0",
 	"devDependencies": {
 		"@anyblades/blades": "3.1.0-beta.2",
-		"@biomejs/biome": "^2.6.1",
+		"@biomejs/biome": "^2.6.2",
 		"@sveltejs/adapter-bun": "^1.0.0",
 		"@sveltejs/kit": "^3.1.0",
 		"@sveltejs/vite-plugin-svelte": "^7.3.1",
