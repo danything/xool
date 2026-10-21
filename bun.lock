@@ -6,7 +6,7 @@
       "name": "xool",
       "devDependencies": {
         "@anyblades/blades": "3.1.0-beta.2",
-        "@biomejs/biome": "^2.6.0",
+        "@biomejs/biome": "^2.6.1",
         "@sveltejs/adapter-bun": "^1.0.0",
         "@sveltejs/kit": "^3.1.0",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
@@ -23,7 +23,7 @@
   "packages": {
     "@anyblades/blades": ["@anyblades/blades@3.1.0-beta.2", "", {}, "sha512-NcFnUOu3KUo1rONX7OkWqgbasVNESbWHIWVniDTnsM7iTAGyKDFFTgoeMKu5WTohiYK/lIrT3dJBTggeQsHiAA=="],
 
-    "@biomejs/biome": ["@biomejs/biome@2.6.0", "", { "optionalDependencies": { "@biomejs/cli-android-arm64": "2.6.0", "@biomejs/cli-android-x64": "2.6.0", "@biomejs/cli-darwin-arm64": "2.6.0", "@biomejs/cli-darwin-x64": "2.6.0", "@biomejs/cli-linux-arm64": "2.6.0", "@biomejs/cli-linux-arm64-musl": "2.6.0", "@biomejs/cli-linux-x64": "2.6.0", "@biomejs/cli-linux-x64-musl": "2.6.0", "@biomejs/cli-win32-arm64": "2.6.0", "@biomejs/cli-win32-x64": "2.6.0" }, "bin": { "biome": "bin/biome" } }, "sha512-W9P1Niu05tuptXd4KXH3OqLwhXxHF92+Xx+vuxfJzGzRI5uHMGghFgCJq94mZAMJxzr2zqtchnul6fLB7P1Gkw=="],
+    "@biomejs/biome": ["@biomejs/biome@2.6.1", "", { "optionalDependencies": { "@biomejs/cli-android-arm64": "2.6.1", "@biomejs/cli-android-x64": "2.6.1", "@biomejs/cli-darwin-arm64": "2.6.1", "@biomejs/cli-darwin-x64": "2.6.1", "@biomejs/cli-linux-arm64": "2.6.1", "@biomejs/cli-linux-arm64-musl": "2.6.1", "@biomejs/cli-linux-x64": "2.6.1", "@biomejs/cli-linux-x64-musl": "2.6.1", "@biomejs/cli-win32-arm64": "2.6.1", "@biomejs/cli-win32-x64": "2.6.1" }, "bin": { "biome": "bin/biome" } }, "sha512-jQV7n2pMwY+YxBwCls+hCLKoij5/kXdeqNW2rUU+2Zp6faTodVmAEqku5HCasbRT4rmVQTTAbSdkvpv6hotZog=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
