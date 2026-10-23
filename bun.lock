@@ -5,7 +5,7 @@
     "": {
       "name": "xool",
       "devDependencies": {
-        "@anyblades/blades": "3.1.0-beta.4",
+        "@anyblades/blades": "3.1.0-beta.5",
         "@biomejs/biome": "^2.6.2",
         "@sveltejs/adapter-bun": "^1.0.0",
         "@sveltejs/kit": "^3.1.0",
@@ -21,7 +21,7 @@
     },
   },
   "packages": {
-    "@anyblades/blades": ["@anyblades/blades@3.1.0-beta.4", "", {}, "sha512-9eQ/aMhfZANkVPO9nQKSE/NuIhXTR95ATntfw78vnTGqaY4y4SUypObfdQHgao+emaUuGhZJXLK3N8tsfRRyaQ=="],
+    "@anyblades/blades": ["@anyblades/blades@3.1.0-beta.5", "", {}, "sha512-UjN8asQuQhbak6UQ40mFTcbcOmzN0yWxNQv1HHO70oIGQItQYJnpzpm/x21FotyhbP7o+SETtC0NFWoS4OPM7g=="],
 
     "@biomejs/biome": ["@biomejs/biome@2.6.2", "", { "optionalDependencies": { "@biomejs/cli-android-arm64": "2.6.2", "@biomejs/cli-android-x64": "2.6.2", "@biomejs/cli-darwin-arm64": "2.6.2", "@biomejs/cli-darwin-x64": "2.6.2", "@biomejs/cli-linux-arm64": "2.6.2", "@biomejs/cli-linux-arm64-musl": "2.6.2", "@biomejs/cli-linux-x64": "2.6.2", "@biomejs/cli-linux-x64-musl": "2.6.2", "@biomejs/cli-win32-arm64": "2.6.2", "@biomejs/cli-win32-x64": "2.6.2" }, "bin": { "biome": "bin/biome" } }, "sha512-JLTFAFF9vfJcWwLhwuL4ZHflLg+XfTEC4IUnAlJRX1cMRt57++Xd1Ysb9Fdmlh9YUrvyCXfPEHjjEIqKJGdPKw=="],
 
