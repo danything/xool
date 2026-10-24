@@ -63,10 +63,12 @@ spec:
           # Endpoint removal and SIGTERM race each other. Sleeping first lets
           # the Cilium Gateway stop routing here before the server stops
           # accepting, so in-flight clicks aren't answered with a connection reset.
+          # The kubelet does the sleeping: the image is distroless and has no
+          # sleep binary to exec.
           lifecycle:
             preStop:
-              exec:
-                command: ["sleep", "5"]
+              sleep:
+                seconds: 5
           startupProbe:
             httpGet:
               path: /api/health
