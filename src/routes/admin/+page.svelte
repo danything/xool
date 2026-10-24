@@ -1,6 +1,7 @@
 <script lang="ts">
-  import { setMessage } from "#lib/stores/toast.svelte.js";
   import { refreshAll } from "$app/navigation";
+
+  import { setMessage } from "#lib/stores/toast.svelte.js";
   import "@anyblades/blades/layered/content/table";
   import type { PageProps } from "./$types";
 

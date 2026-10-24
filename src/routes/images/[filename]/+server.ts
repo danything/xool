@@ -1,5 +1,7 @@
 import { redirect } from "@sveltejs/kit";
+
 import { LGTM_ORIGIN } from "#lib/server/lgtm-origin.js";
+
 import type { RequestHandler } from "./$types";
 
 // LGTM served from this hostname before it had its own, and the markdown it

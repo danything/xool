@@ -1,5 +1,7 @@
 import { json } from "@sveltejs/kit";
+
 import { deleteUser, isAdmin, setAdmin } from "#lib/server/admin.js";
+
 import type { RequestHandler } from "./$types";
 
 // 404 rather than 403, to match the page: someone who cannot see it has no
