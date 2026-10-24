@@ -1,5 +1,6 @@
 import { autoAction } from "#lib/server/client.js";
 import { getSummary } from "#lib/server/summary.js";
+
 import type { PageServerLoad } from "./$types";
 
 export const load: PageServerLoad = async ({ cookies }) => {

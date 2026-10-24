@@ -1,5 +1,7 @@
 import { redirect } from "@sveltejs/kit";
+
 import { callbackUrl } from "#lib/server/oauth.js";
+
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = ({ url, cookies }) => {

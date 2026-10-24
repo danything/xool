@@ -1,10 +1,12 @@
 import { redirect } from "@sveltejs/kit";
+
 import { action, client } from "#lib/server/client.js";
 import db from "#lib/server/db.js";
 import { generateUniqueKey, SESSION_MAX_AGE } from "#lib/server/key.js";
 import type { User } from "#lib/server/model.js";
 import { callbackUrl } from "#lib/server/oauth.js";
 import { recordUserRead } from "#lib/server/spend.js";
+
 import type { RequestHandler } from "./$types";
 
 export const GET: RequestHandler = async ({ url, cookies }) => {

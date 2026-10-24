@@ -1,8 +1,9 @@
 <script lang="ts">
+  import { refreshAll } from "$app/navigation";
+
   import ErrorAlert from "#lib/components/ErrorAlert.svelte";
   import SignInButton from "#lib/components/SignInButton.svelte";
   import { setMessage } from "#lib/stores/toast.svelte.js";
-  import { refreshAll } from "$app/navigation";
   import "@anyblades/blades/layered/content/code";
   import "@anyblades/blades/layered/content/figure";
 
