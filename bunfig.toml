@@ -5,5 +5,4 @@ sortImports = true
 ignorePatterns = [
   # docker-publish.yml がイメージのタグを書き換えて ArgoCD が読む
   "deploy/",
-  "renovate.json",
 ]
