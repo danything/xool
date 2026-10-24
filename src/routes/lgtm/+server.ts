@@ -5,6 +5,6 @@ import type { RequestHandler } from "./$types";
 // LGTM used to live one level down from this hostname. Anyone still holding
 // that link gets taken to where it went.
 export const GET: RequestHandler = () => {
-	// Another origin, so SvelteKit 3 needs the redirect marked as external.
-	redirect(308, `${LGTM_ORIGIN}/`, { external: true });
+  // Another origin, so SvelteKit 3 needs the redirect marked as external.
+  redirect(308, `${LGTM_ORIGIN}/`, { external: true });
 };

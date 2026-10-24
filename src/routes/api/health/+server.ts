@@ -6,6 +6,6 @@ import type { RequestHandler } from "./$types";
 // Service once it answers, so the old pod keeps serving until the replacement
 // can reach the database on the shared volume.
 export const GET: RequestHandler = () => {
-	db().query("SELECT 1").get();
-	return json({ status: "ok" }, { headers: { "cache-control": "no-store" } });
+  db().query("SELECT 1").get();
+  return json({ status: "ok" }, { headers: { "cache-control": "no-store" } });
 };

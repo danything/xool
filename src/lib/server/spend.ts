@@ -6,25 +6,25 @@ import db from "./db";
  * out of every successful call, not only the ones that led to a summary.
  */
 export function recordSpend(
-	userKey: string,
-	spend: {
-		reads?: number;
-		userReads?: number;
-		posts?: number;
-		impressions?: number;
-	},
+  userKey: string,
+  spend: {
+    reads?: number;
+    userReads?: number;
+    posts?: number;
+    impressions?: number;
+  },
 ) {
-	db().run(
-		"INSERT INTO spend (userKey, at, reads, userReads, posts, impressions) VALUES (?, ?, ?, ?, ?, ?)",
-		[
-			userKey,
-			Date.now(),
-			spend.reads ?? 0,
-			spend.userReads ?? 0,
-			spend.posts ?? 0,
-			spend.impressions ?? 0,
-		],
-	);
+  db().run(
+    "INSERT INTO spend (userKey, at, reads, userReads, posts, impressions) VALUES (?, ?, ?, ?, ?, ?)",
+    [
+      userKey,
+      Date.now(),
+      spend.reads ?? 0,
+      spend.userReads ?? 0,
+      spend.posts ?? 0,
+      spend.impressions ?? 0,
+    ],
+  );
 }
 
 /** The UTC day x.com deduplicates within. It resets at midnight UTC. */
@@ -41,25 +41,25 @@ const utcDay = () => new Date().toISOString().slice(0, 10);
  * what gets billed, and nobody else can return your posts anyway.
  */
 export function chargeableReads(postIds: string[]): number {
-	const day = utcDay();
-	const insert = db().query(
-		"INSERT OR IGNORE INTO readCharge (day, postId) VALUES (?, ?)",
-	);
+  const day = utcDay();
+  const insert = db().query(
+    "INSERT OR IGNORE INTO readCharge (day, postId) VALUES (?, ?)",
+  );
 
-	let fresh = 0;
-	db().transaction(() => {
-		for (const postId of postIds) {
-			if (insert.run(day, postId).changes > 0) fresh += 1;
-		}
-		// Yesterday is kept so a run that starts before midnight and finishes
-		// after it does not charge twice for what it already counted.
-		db().run("DELETE FROM readCharge WHERE day < ?", [
-			new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000)
-				.toISOString()
-				.slice(0, 10),
-		]);
-	})();
-	return fresh;
+  let fresh = 0;
+  db().transaction(() => {
+    for (const postId of postIds) {
+      if (insert.run(day, postId).changes > 0) fresh += 1;
+    }
+    // Yesterday is kept so a run that starts before midnight and finishes
+    // after it does not charge twice for what it already counted.
+    db().run("DELETE FROM readCharge WHERE day < ?", [
+      new Date(Date.parse(`${day}T00:00:00Z`) - 86_400_000)
+        .toISOString()
+        .slice(0, 10),
+    ]);
+  })();
+  return fresh;
 }
 
 /**
@@ -69,12 +69,12 @@ export function chargeableReads(postIds: string[]): number {
  * only the first one each day is written down.
  */
 export function recordUserRead(userKey: string) {
-	const dayStart = Date.parse(`${utcDay()}T00:00:00Z`);
-	const seen = db()
-		.query<{ id: number }, [string, number]>(
-			"SELECT id FROM spend WHERE userKey = ? AND at >= ? AND userReads > 0 LIMIT 1",
-		)
-		.get(userKey, dayStart);
-	if (seen !== null) return;
-	recordSpend(userKey, { userReads: 1 });
+  const dayStart = Date.parse(`${utcDay()}T00:00:00Z`);
+  const seen = db()
+    .query<{ id: number }, [string, number]>(
+      "SELECT id FROM spend WHERE userKey = ? AND at >= ? AND userReads > 0 LIMIT 1",
+    )
+    .get(userKey, dayStart);
+  if (seen !== null) return;
+  recordSpend(userKey, { userReads: 1 });
 }

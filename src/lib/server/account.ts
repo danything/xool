@@ -6,9 +6,9 @@ import db from "./db";
  * else on the way in checks.
  */
 export function accountExists(userKey: string): boolean {
-	return (
-		db()
-			.query<{ key: string }, [string]>("SELECT key FROM user WHERE key = ?")
-			.get(userKey) !== null
-	);
+  return (
+    db()
+      .query<{ key: string }, [string]>("SELECT key FROM user WHERE key = ?")
+      .get(userKey) !== null
+  );
 }

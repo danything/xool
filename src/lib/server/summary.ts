@@ -9,43 +9,43 @@ const JST_OFFSET_MS = 9 * 3_600_000;
 
 /** The JST calendar date an instant falls on, as YYYY-MM-DD. */
 function jstDate(at: number): string {
-	return new Date(at + JST_OFFSET_MS).toISOString().slice(0, 10);
+  return new Date(at + JST_OFFSET_MS).toISOString().slice(0, 10);
 }
 
 function addDays(date: string, days: number): string {
-	return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000)
-		.toISOString()
-		.slice(0, 10);
+  return new Date(Date.parse(`${date}T00:00:00Z`) + days * 86_400_000)
+    .toISOString()
+    .slice(0, 10);
 }
 
 /** An instant in the shape x.com wants for start_time and end_time. */
 function isoSeconds(at: number): string {
-	return new Date(at).toISOString().replace(/\.\d{3}Z$/, "Z");
+  return new Date(at).toISOString().replace(/\.\d{3}Z$/, "Z");
 }
 
 /** Midnight JST at the start of a date, as the UTC instant x.com asks for. */
 function jstMidnight(date: string): string {
-	return new Date(Date.parse(`${date}T00:00:00Z`) - JST_OFFSET_MS)
-		.toISOString()
-		.replace(/\.\d{3}Z$/, "Z");
+  return new Date(Date.parse(`${date}T00:00:00Z`) - JST_OFFSET_MS)
+    .toISOString()
+    .replace(/\.\d{3}Z$/, "Z");
 }
 
 export function getSummary(userKey: string): Summary | null {
-	return db()
-		.query<Summary, [string]>("SELECT * FROM summary WHERE userKey = ?")
-		.get(userKey);
+  return db()
+    .query<Summary, [string]>("SELECT * FROM summary WHERE userKey = ?")
+    .get(userKey);
 }
 
 export function setEnabled(userKey: string, enabled: boolean) {
-	// lastSummarizedOn is deliberately left alone. It is the record of which day
-	// has already been dealt with, and the caller reads it to decide whether
-	// this is a first enable; clearing it here would make every toggle look like
-	// one and post again.
-	db().run(
-		`INSERT INTO summary (userKey, enabled) VALUES (?, ?)
+  // lastSummarizedOn is deliberately left alone. It is the record of which day
+  // has already been dealt with, and the caller reads it to decide whether
+  // this is a first enable; clearing it here would make every toggle look like
+  // one and post again.
+  db().run(
+    `INSERT INTO summary (userKey, enabled) VALUES (?, ?)
 		 ON CONFLICT(userKey) DO UPDATE SET enabled = excluded.enabled, lastError = NULL`,
-		[userKey, enabled ? 1 : 0],
-	);
+    [userKey, enabled ? 1 : 0],
+  );
 }
 
 const numberFormat = new Intl.NumberFormat("ja-JP");
@@ -53,22 +53,22 @@ const n = (value: number) => numberFormat.format(value);
 
 /** How many days up to and including `date` were posted on, without a gap. */
 function streakEndingOn(userKey: string, date: string): number {
-	const days = db()
-		.query<{ date: string; posts: number }, [string, string]>(
-			"SELECT date, posts FROM summaryDay WHERE userKey = ? AND date <= ? ORDER BY date DESC LIMIT 400",
-		)
-		.all(userKey, date);
+  const days = db()
+    .query<{ date: string; posts: number }, [string, string]>(
+      "SELECT date, posts FROM summaryDay WHERE userKey = ? AND date <= ? ORDER BY date DESC LIMIT 400",
+    )
+    .all(userKey, date);
 
-	let streak = 0;
-	let expected = date;
-	for (const day of days) {
-		// A missing row is a day this never ran for, which is not evidence of
-		// having posted, so it ends the streak just like an empty day does.
-		if (day.date !== expected || day.posts === 0) break;
-		streak++;
-		expected = addDays(expected, -1);
-	}
-	return streak;
+  let streak = 0;
+  let expected = date;
+  for (const day of days) {
+    // A missing row is a day this never ran for, which is not evidence of
+    // having posted, so it ends the streak just like an empty day does.
+    if (day.date !== expected || day.posts === 0) break;
+    streak++;
+    expected = addDays(expected, -1);
+  }
+  return streak;
 }
 
 /**
@@ -76,17 +76,17 @@ function streakEndingOn(userKey: string, date: string): number {
  * 上限は 280 で、超えると投稿そのものが弾かれる。
  */
 export function weightedLength(text: string): number {
-	let total = 0;
-	for (const ch of text) {
-		const code = ch.codePointAt(0) ?? 0;
-		const light =
-			code <= 0x10ff ||
-			(code >= 0x2000 && code <= 0x200d) ||
-			(code >= 0x2010 && code <= 0x201f) ||
-			(code >= 0x2032 && code <= 0x2037);
-		total += light ? 1 : 2;
-	}
-	return total;
+  let total = 0;
+  for (const ch of text) {
+    const code = ch.codePointAt(0) ?? 0;
+    const light =
+      code <= 0x10ff ||
+      (code >= 0x2000 && code <= 0x200d) ||
+      (code >= 0x2010 && code <= 0x201f) ||
+      (code >= 0x2032 && code <= 0x2037);
+    total += light ? 1 : 2;
+  }
+  return total;
 }
 
 /** 上限。実際の 280 まで詰めず、絵文字の数え方の差を吸収する余白を残す */
@@ -97,86 +97,86 @@ const LIMIT = 260;
  * 順位付けに使わない。煽りにならない範囲で段を付ける
  */
 function rank(posts: number): { mark: string; label: string } {
-	if (posts >= 51) return { mark: "💀", label: "重症" };
-	if (posts >= 21) return { mark: "🚨", label: "危険域" };
-	if (posts >= 11) return { mark: "⚡", label: "予備軍" };
-	if (posts >= 6) return { mark: "💬", label: "おしゃべり" };
-	if (posts >= 3) return { mark: "☕", label: "ふつう" };
-	return { mark: "🌱", label: "ひかえめ" };
+  if (posts >= 51) return { mark: "💀", label: "重症" };
+  if (posts >= 21) return { mark: "🚨", label: "危険域" };
+  if (posts >= 11) return { mark: "⚡", label: "予備軍" };
+  if (posts >= 6) return { mark: "💬", label: "おしゃべり" };
+  if (posts >= 3) return { mark: "☕", label: "ふつう" };
+  return { mark: "🌱", label: "ひかえめ" };
 }
 
 /** 前日比。増減が一目で分かるよう矢印を付ける */
 function trend(value: number): string {
-	if (value > 0) return ` ↗ +${value}`;
-	if (value < 0) return ` ↘ ${value}`;
-	return " → ±0";
+  if (value > 0) return ` ↗ +${value}`;
+  if (value < 0) return ` ↘ ${value}`;
+  return " → ±0";
 }
 
 export function summaryText(
-	date: string,
-	posts: OwnPost[],
-	options: { previous?: SummaryDay; streak?: number; partial?: boolean } = {},
+  date: string,
+  posts: OwnPost[],
+  options: { previous?: SummaryDay; streak?: number; partial?: boolean } = {},
 ): string {
-	const { previous, streak = 0, partial = false } = options;
-	const [, month, day] = date.split("-");
-	const when = `${Number(month)}/${Number(day)}のポスト${partial ? "(0:00〜現在)" : ""}`;
+  const { previous, streak = 0, partial = false } = options;
+  const [, month, day] = date.split("-");
+  const when = `${Number(month)}/${Number(day)}のポスト${partial ? "(0:00〜現在)" : ""}`;
 
-	// 0 件の日は反応の行を並べても全部ゼロで、読む人に何も伝わらない
-	if (posts.length === 0)
-		return [
-			`📊 ${when} 0件`,
-			"🌙 今日はまだ静かです",
-			"",
-			"#ポスト通信簿",
-		].join("\n");
+  // 0 件の日は反応の行を並べても全部ゼロで、読む人に何も伝わらない
+  if (posts.length === 0)
+    return [
+      `📊 ${when} 0件`,
+      "🌙 今日はまだ静かです",
+      "",
+      "#ポスト通信簿",
+    ].join("\n");
 
-	const total = (pick: (post: OwnPost) => number | undefined) =>
-		posts.reduce((sum, post) => sum + (pick(post) ?? 0), 0);
+  const total = (pick: (post: OwnPost) => number | undefined) =>
+    posts.reduce((sum, post) => sum + (pick(post) ?? 0), 0);
 
-	const replies = posts.filter((post) => post.in_reply_to_user_id).length;
-	const likes = total((post) => post.public_metrics?.like_count);
-	const reposts = total((post) => post.public_metrics?.retweet_count);
-	const replied = total((post) => post.public_metrics?.reply_count);
-	const bookmarks = total((post) => post.public_metrics?.bookmark_count);
-	const impressions = total((p) => p.non_public_metrics?.impression_count);
-	const profileClicks = total((p) => p.non_public_metrics?.user_profile_clicks);
-	const linkClicks = total((p) => p.non_public_metrics?.url_link_clicks);
-	const best = Math.max(
-		0,
-		...posts.map((p) => p.non_public_metrics?.impression_count ?? 0),
-	);
+  const replies = posts.filter((post) => post.in_reply_to_user_id).length;
+  const likes = total((post) => post.public_metrics?.like_count);
+  const reposts = total((post) => post.public_metrics?.retweet_count);
+  const replied = total((post) => post.public_metrics?.reply_count);
+  const bookmarks = total((post) => post.public_metrics?.bookmark_count);
+  const impressions = total((p) => p.non_public_metrics?.impression_count);
+  const profileClicks = total((p) => p.non_public_metrics?.user_profile_clicks);
+  const linkClicks = total((p) => p.non_public_metrics?.url_link_clicks);
+  const best = Math.max(
+    0,
+    ...posts.map((p) => p.non_public_metrics?.impression_count ?? 0),
+  );
 
-	const diff =
-		previous === undefined || partial
-			? ""
-			: trend(posts.length - previous.posts);
-	const { mark, label } = rank(posts.length);
+  const diff =
+    previous === undefined || partial
+      ? ""
+      : trend(posts.length - previous.posts);
+  const { mark, label } = rank(posts.length);
 
-	// 見出しと反応は必ず入れる。**反応がこの投稿の本体**で、ゼロもひとつの答え
-	const head = [
-		`📊 ${when} ${posts.length}件${replies > 0 ? `(リプ${replies})` : ""}${diff}`,
-		`${mark} ツイ廃度: ${label}`,
-		`❤️ ${n(likes)}  🔁 ${n(reposts)}  💬 ${n(replied)}  🔖 ${n(bookmarks)}`,
-	];
-	// 以下は言うことがある日だけ。**上から順に入るだけ入れる** —
-	// 280 を超えると投稿ごと弾かれるので、長さで落とす順番を決めておく
-	const extras = [
-		impressions > 0 &&
-			`👀 ${n(impressions)} (平均${n(Math.round(impressions / posts.length))} 最高${n(best)})`,
-		streak > 1 && `🔥 ${streak}日連続`,
-		profileClicks + linkClicks > 0 &&
-			`🔗 プロフ ${n(profileClicks)}  リンク ${n(linkClicks)}`,
-	].filter((line) => typeof line === "string");
+  // 見出しと反応は必ず入れる。**反応がこの投稿の本体**で、ゼロもひとつの答え
+  const head = [
+    `📊 ${when} ${posts.length}件${replies > 0 ? `(リプ${replies})` : ""}${diff}`,
+    `${mark} ツイ廃度: ${label}`,
+    `❤️ ${n(likes)}  🔁 ${n(reposts)}  💬 ${n(replied)}  🔖 ${n(bookmarks)}`,
+  ];
+  // 以下は言うことがある日だけ。**上から順に入るだけ入れる** —
+  // 280 を超えると投稿ごと弾かれるので、長さで落とす順番を決めておく
+  const extras = [
+    impressions > 0 &&
+      `👀 ${n(impressions)} (平均${n(Math.round(impressions / posts.length))} 最高${n(best)})`,
+    streak > 1 && `🔥 ${streak}日連続`,
+    profileClicks + linkClicks > 0 &&
+      `🔗 プロフ ${n(profileClicks)}  リンク ${n(linkClicks)}`,
+  ].filter((line) => typeof line === "string");
 
-	const tail = ["", "#ポスト通信簿"];
-	const lines = [...head];
-	for (const line of extras) {
-		const next = [...lines, line, ...tail].join("\n");
-		if (weightedLength(next) > LIMIT) break;
-		lines.push(line);
-	}
+  const tail = ["", "#ポスト通信簿"];
+  const lines = [...head];
+  for (const line of extras) {
+    const next = [...lines, line, ...tail].join("\n");
+    if (weightedLength(next) > LIMIT) break;
+    lines.push(line);
+  }
 
-	return [...lines, ...tail].join("\n");
+  return [...lines, ...tail].join("\n");
 }
 
 /**
@@ -190,98 +190,98 @@ export function summaryText(
  * yesterday rather than today as dealt with, for the same reason.
  */
 async function post(
-	row: Summary,
-	date: string,
-	options: { endTime: string; partial: boolean },
+  row: Summary,
+  date: string,
+  options: { endTime: string; partial: boolean },
 ): Promise<boolean> {
-	const { endTime, partial } = options;
-	const user = db()
-		.query<User, [string]>("SELECT * FROM user WHERE key = ?")
-		.get(row.userKey);
-	if (user === null) return false;
+  const { endTime, partial } = options;
+  const user = db()
+    .query<User, [string]>("SELECT * FROM user WHERE key = ?")
+    .get(row.userKey);
+  if (user === null) return false;
 
-	let lastError: string | null = null;
-	let lastPostId: string | null = row.lastPostId;
-	let posted = false;
+  let lastError: string | null = null;
+  let lastPostId: string | null = row.lastPostId;
+  let posted = false;
 
-	const ret = await autoAction("ownPosts", row.userKey, {
-		id: user.socialId,
-		startTime: jstMidnight(date),
-		endTime,
-	});
-	const status = ret?.rateLimit?.httpStatus;
+  const ret = await autoAction("ownPosts", row.userKey, {
+    id: user.socialId,
+    startTime: jstMidnight(date),
+    endTime,
+  });
+  const status = ret?.rateLimit?.httpStatus;
 
-	if (ret?.error !== undefined) {
-		lastError = ret.error;
-	} else if (status !== undefined && status >= 400) {
-		lastError = `𝕏がポストの取得を拒否しました (${status})`;
-	} else {
-		// The last summary lands inside the window it now reports on -- just
-		// after midnight for the nightly run, earlier the same day for a second
-		// press of the button -- so without this it counts itself.
-		const all: OwnPost[] = ret?.data ?? [];
-		const posts = all.filter((post) => post.id !== row.lastPostId);
-		const impressions = posts.reduce(
-			(sum, post) => sum + (post.non_public_metrics?.impression_count ?? 0),
-			0,
-		);
-		const record = (didPost: boolean) =>
-			db().run(
-				"INSERT OR REPLACE INTO summaryDay (userKey, date, posts, impressions, posted) VALUES (?, ?, ?, ?, ?)",
-				[row.userKey, date, posts.length, impressions, didPost ? 1 : 0],
-			);
-		if (!partial) record(false);
+  if (ret?.error !== undefined) {
+    lastError = ret.error;
+  } else if (status !== undefined && status >= 400) {
+    lastError = `𝕏がポストの取得を拒否しました (${status})`;
+  } else {
+    // The last summary lands inside the window it now reports on -- just
+    // after midnight for the nightly run, earlier the same day for a second
+    // press of the button -- so without this it counts itself.
+    const all: OwnPost[] = ret?.data ?? [];
+    const posts = all.filter((post) => post.id !== row.lastPostId);
+    const impressions = posts.reduce(
+      (sum, post) => sum + (post.non_public_metrics?.impression_count ?? 0),
+      0,
+    );
+    const record = (didPost: boolean) =>
+      db().run(
+        "INSERT OR REPLACE INTO summaryDay (userKey, date, posts, impressions, posted) VALUES (?, ?, ?, ?, ?)",
+        [row.userKey, date, posts.length, impressions, didPost ? 1 : 0],
+      );
+    if (!partial) record(false);
 
-		// A quiet day is not worth $0.015 to announce on its own.
-		if (partial || posts.length > 0) {
-			// Neither comparison means anything about a day that is still
-			// running, so a partial report does not pay for them.
-			const context = partial
-				? { partial: true }
-				: {
-						previous:
-							db()
-								.query<SummaryDay, [string, string]>(
-									"SELECT * FROM summaryDay WHERE userKey = ? AND date = ?",
-								)
-								.get(row.userKey, addDays(date, -1)) ?? undefined,
-						streak: streakEndingOn(row.userKey, date),
-					};
-			const result = await autoAction("tweet", row.userKey, {
-				text: summaryText(date, posts, context),
-			});
-			if (result?.error !== undefined) {
-				lastError = result.error;
-			} else if (result?.rateLimit?.httpStatus >= 400) {
-				lastError = `𝕏がポストを拒否しました (${result.rateLimit.httpStatus})`;
-			} else {
-				lastPostId = result?.data?.id ?? null;
-				posted = true;
-				if (!partial) record(true);
-			}
-		}
-		// Billed per resource returned -- including the one filtered out above,
-		// which x.com still had to hand over -- but only the first time today.
-		recordSpend(row.userKey, {
-			reads: chargeableReads(all.map((post) => post.id)),
-			posts: posted ? 1 : 0,
-			impressions,
-		});
-	}
+    // A quiet day is not worth $0.015 to announce on its own.
+    if (partial || posts.length > 0) {
+      // Neither comparison means anything about a day that is still
+      // running, so a partial report does not pay for them.
+      const context = partial
+        ? { partial: true }
+        : {
+            previous:
+              db()
+                .query<SummaryDay, [string, string]>(
+                  "SELECT * FROM summaryDay WHERE userKey = ? AND date = ?",
+                )
+                .get(row.userKey, addDays(date, -1)) ?? undefined,
+            streak: streakEndingOn(row.userKey, date),
+          };
+      const result = await autoAction("tweet", row.userKey, {
+        text: summaryText(date, posts, context),
+      });
+      if (result?.error !== undefined) {
+        lastError = result.error;
+      } else if (result?.rateLimit?.httpStatus >= 400) {
+        lastError = `𝕏がポストを拒否しました (${result.rateLimit.httpStatus})`;
+      } else {
+        lastPostId = result?.data?.id ?? null;
+        posted = true;
+        if (!partial) record(true);
+      }
+    }
+    // Billed per resource returned -- including the one filtered out above,
+    // which x.com still had to hand over -- but only the first time today.
+    recordSpend(row.userKey, {
+      reads: chargeableReads(all.map((post) => post.id)),
+      posts: posted ? 1 : 0,
+      impressions,
+    });
+  }
 
-	// The date is recorded whether or not it worked, so a failure costs one
-	// attempt rather than one every time the timer fires.
-	db().run(
-		"UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
-		[
-			partial ? addDays(date, -1) : date,
-			lastPostId,
-			posted ? Date.now() : row.lastPostedAt,
-			lastError,
-			row.userKey,
-		],
-	);
-	return posted;
+  // The date is recorded whether or not it worked, so a failure costs one
+  // attempt rather than one every time the timer fires.
+  db().run(
+    "UPDATE summary SET lastSummarizedOn = ?, lastPostId = ?, lastPostedAt = ?, lastError = ? WHERE userKey = ?",
+    [
+      partial ? addDays(date, -1) : date,
+      lastPostId,
+      posted ? Date.now() : row.lastPostedAt,
+      lastError,
+      row.userKey,
+    ],
+  );
+  return posted;
 }
 
 /**
@@ -291,13 +291,13 @@ async function post(
  * time to wait to see what this thing does.
  */
 export async function postToday(userKey: string, now = Date.now()) {
-	const row = getSummary(userKey);
-	if (row === null) return false;
-	return await post(row, jstDate(now), {
-		// x.com rejects an end_time that is not comfortably in the past.
-		endTime: isoSeconds(now - 60_000),
-		partial: true,
-	});
+  const row = getSummary(userKey);
+  if (row === null) return false;
+  return await post(row, jstDate(now), {
+    // x.com rejects an end_time that is not comfortably in the past.
+    endTime: isoSeconds(now - 60_000),
+    partial: true,
+  });
 }
 
 /**
@@ -307,20 +307,20 @@ export async function postToday(userKey: string, now = Date.now()) {
  * overlapping ticks do not repost.
  */
 export async function postDueSummaries(now = Date.now()) {
-	const date = addDays(jstDate(now), -1);
-	const due = db()
-		.query<Summary, [string]>(
-			"SELECT * FROM summary WHERE enabled = 1 AND (lastSummarizedOn IS NULL OR lastSummarizedOn < ?)",
-		)
-		.all(date);
+  const date = addDays(jstDate(now), -1);
+  const due = db()
+    .query<Summary, [string]>(
+      "SELECT * FROM summary WHERE enabled = 1 AND (lastSummarizedOn IS NULL OR lastSummarizedOn < ?)",
+    )
+    .all(date);
 
-	let posted = 0;
-	for (const row of due) {
-		const done = await post(row, date, {
-			endTime: jstMidnight(addDays(date, 1)),
-			partial: false,
-		});
-		if (done) posted++;
-	}
-	return posted;
+  let posted = 0;
+  for (const row of due) {
+    const done = await post(row, date, {
+      endTime: jstMidnight(addDays(date, 1)),
+      partial: false,
+    });
+    if (done) posted++;
+  }
+  return posted;
 }
