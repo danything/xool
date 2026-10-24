@@ -3,7 +3,6 @@
 # import を並べ替える (組の分け方は既定のまま。副作用だけの import は動かさない)
 sortImports = true
 ignorePatterns = [
-  "static/",
   # docker-publish.yml がイメージのタグを書き換えて ArgoCD が読む
   "deploy/",
   "renovate.json",
