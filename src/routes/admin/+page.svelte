@@ -1,269 +1,273 @@
 <script lang="ts">
-import { setMessage } from "#lib/stores/toast.svelte.js";
-import { refreshAll } from "$app/navigation";
-import "@anyblades/blades/layered/content/table";
-import type { PageProps } from "./$types";
+  import { setMessage } from "#lib/stores/toast.svelte.js";
+  import { refreshAll } from "$app/navigation";
+  import "@anyblades/blades/layered/content/table";
+  import type { PageProps } from "./$types";
 
-let { data }: PageProps = $props();
+  let { data }: PageProps = $props();
 
-let saving = $state<string>();
-// Deleting an account cannot be undone, so the first click only arms the
-// button; any other click puts it back.
-let armed = $state<string>();
+  let saving = $state<string>();
+  // Deleting an account cannot be undone, so the first click only arms the
+  // button; any other click puts it back.
+  let armed = $state<string>();
 
-$effect(() => {
-	if (armed === undefined) return;
-	const disarm = () => {
-		armed = undefined;
-	};
-	window.addEventListener("click", disarm);
-	return () => window.removeEventListener("click", disarm);
-});
+  $effect(() => {
+    if (armed === undefined) return;
+    const disarm = () => {
+      armed = undefined;
+    };
+    window.addEventListener("click", disarm);
+    return () => window.removeEventListener("click", disarm);
+  });
 
-async function remove(event: MouseEvent, user: { userKey: string }) {
-	event.stopPropagation();
-	if (armed !== user.userKey) {
-		armed = user.userKey;
-		return;
-	}
-	armed = undefined;
-	try {
-		saving = user.userKey;
-		const res = await fetch("/api/admin", {
-			method: "DELETE",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ userKey: user.userKey }),
-		});
-		const ret = await res.json();
-		if (!res.ok || ret.error)
-			throw new Error(ret.error ?? "削除できませんでした");
-		setMessage("削除しました");
-	} catch (error) {
-		setMessage(error instanceof Error ? error.message : "削除できませんでした");
-	} finally {
-		await refreshAll();
-		saving = undefined;
-	}
-}
+  async function remove(event: MouseEvent, user: { userKey: string }) {
+    event.stopPropagation();
+    if (armed !== user.userKey) {
+      armed = user.userKey;
+      return;
+    }
+    armed = undefined;
+    try {
+      saving = user.userKey;
+      const res = await fetch("/api/admin", {
+        method: "DELETE",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userKey: user.userKey }),
+      });
+      const ret = await res.json();
+      if (!res.ok || ret.error)
+        throw new Error(ret.error ?? "削除できませんでした");
+      setMessage("削除しました");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "削除できませんでした",
+      );
+    } finally {
+      await refreshAll();
+      saving = undefined;
+    }
+  }
 
-async function setAdmin(userKey: string, admin: boolean) {
-	try {
-		saving = userKey;
-		const res = await fetch("/api/admin", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ userKey, admin }),
-		});
-		const ret = await res.json();
-		if (!res.ok || ret.error)
-			throw new Error(ret.error ?? "変更できませんでした");
-		setMessage(admin ? "管理者にしました" : "管理者を解除しました");
-	} catch (error) {
-		setMessage(error instanceof Error ? error.message : "変更できませんでした");
-	} finally {
-		await refreshAll();
-		saving = undefined;
-	}
-}
+  async function setAdmin(userKey: string, admin: boolean) {
+    try {
+      saving = userKey;
+      const res = await fetch("/api/admin", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userKey, admin }),
+      });
+      const ret = await res.json();
+      if (!res.ok || ret.error)
+        throw new Error(ret.error ?? "変更できませんでした");
+      setMessage(admin ? "管理者にしました" : "管理者を解除しました");
+    } catch (error) {
+      setMessage(
+        error instanceof Error ? error.message : "変更できませんでした",
+      );
+    } finally {
+      await refreshAll();
+      saving = undefined;
+    }
+  }
 
-const number = new Intl.NumberFormat("ja-JP");
-const money = new Intl.NumberFormat("en-US", {
-	style: "currency",
-	currency: "USD",
-	minimumFractionDigits: 3,
-});
-// JST explicitly, so the server's UTC render and the browser's do not disagree
-// and swap on hydration. The daily rows beside it are JST too.
-const dateTime = new Intl.DateTimeFormat("ja-JP", {
-	dateStyle: "short",
-	timeStyle: "short",
-	timeZone: "Asia/Tokyo",
-});
+  const number = new Intl.NumberFormat("ja-JP");
+  const money = new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 3,
+  });
+  // JST explicitly, so the server's UTC render and the browser's do not disagree
+  // and swap on hydration. The daily rows beside it are JST too.
+  const dateTime = new Intl.DateTimeFormat("ja-JP", {
+    dateStyle: "short",
+    timeStyle: "short",
+    timeZone: "Asia/Tokyo",
+  });
 </script>
 
 <div class="page">
-	<div class="metrics">
-		<div class="metric">
-			<div class="lab">ログイン済みユーザー</div>
-			<div class="val">{number.format(data.summary.users)}</div>
-		</div>
-		<div class="metric">
-			<div class="lab">自動ポストON</div>
-			<div class="val">{number.format(data.summary.enabled)}</div>
-		</div>
-		<div class="metric">
-			<div class="lab">𝕏への支払い (直近30日・推定)</div>
-			<div class="val">{money.format(data.summary.cost)}</div>
-		</div>
-	</div>
+  <div class="metrics">
+    <div class="metric">
+      <div class="lab">ログイン済みユーザー</div>
+      <div class="val">{number.format(data.summary.users)}</div>
+    </div>
+    <div class="metric">
+      <div class="lab">自動ポストON</div>
+      <div class="val">{number.format(data.summary.enabled)}</div>
+    </div>
+    <div class="metric">
+      <div class="lab">𝕏への支払い (直近30日・推定)</div>
+      <div class="val">{money.format(data.summary.cost)}</div>
+    </div>
+  </div>
 
-	{#if data.summary.failing.length > 0}
-		<div><h4>失敗しているユーザー</h4></div>
-		<div class="scroll-x">
-			<table>
-				<thead>
-					<tr>
-						<th scope="col">𝕏 ID</th>
-						<th scope="col">最終処理</th>
-						<th scope="col">内容</th>
-					</tr>
-				</thead>
-				<tbody>
-					{#each data.summary.failing as row (row.socialId)}
-						<tr>
-							<td>{row.socialId}</td>
-							<td>{row.lastSummarizedOn ?? "-"}</td>
-							<td>{row.error}</td>
-						</tr>
-					{/each}
-				</tbody>
-			</table>
-		</div>
-	{/if}
+  {#if data.summary.failing.length > 0}
+    <div><h4>失敗しているユーザー</h4></div>
+    <div class="scroll-x">
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">𝕏 ID</th>
+            <th scope="col">最終処理</th>
+            <th scope="col">内容</th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each data.summary.failing as row (row.socialId)}
+            <tr>
+              <td>{row.socialId}</td>
+              <td>{row.lastSummarizedOn ?? "-"}</td>
+              <td>{row.error}</td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  {/if}
 
-	<div><h4>日別 (直近30日)</h4></div>
-	<div class="scroll-x">
-		<table>
-			<thead>
-				<tr>
-					<th scope="col">日付 (UTC)</th>
-					<th scope="col">対象</th>
-					<th scope="col">読み取り</th>
-					<th scope="col">𝕏の実測</th>
-					<th scope="col">アカウント参照 (無料)</th>
-					<th scope="col">投稿</th>
-					<th scope="col">インプレッション</th>
-					<th scope="col">費用</th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.summary.days as day (day.date)}
-					<tr>
-						<td>{day.date}</td>
-						<td>{number.format(day.users)}</td>
-						<td>{number.format(day.posts)}</td>
-						<td>
-							{#if day.reported === undefined}
-								<span class="muted">-</span>
-							{:else if day.reported === day.posts}
-								{number.format(day.reported)}
-							{:else}
-								<!-- The estimate and the bill disagreeing is the one thing
+  <div><h4>日別 (直近30日)</h4></div>
+  <div class="scroll-x">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">日付 (UTC)</th>
+          <th scope="col">対象</th>
+          <th scope="col">読み取り</th>
+          <th scope="col">𝕏の実測</th>
+          <th scope="col">アカウント参照 (無料)</th>
+          <th scope="col">投稿</th>
+          <th scope="col">インプレッション</th>
+          <th scope="col">費用</th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each data.summary.days as day (day.date)}
+          <tr>
+            <td>{day.date}</td>
+            <td>{number.format(day.users)}</td>
+            <td>{number.format(day.posts)}</td>
+            <td>
+              {#if day.reported === undefined}
+                <span class="muted">-</span>
+              {:else if day.reported === day.posts}
+                {number.format(day.reported)}
+              {:else}
+                <!-- The estimate and the bill disagreeing is the one thing
 								     this column exists to show, so it does not whisper it. -->
-								<span class="tag warn">
-									{number.format(day.reported)}
-								</span>
-							{/if}
-						</td>
-						<td>{number.format(day.userReads)}</td>
-						<td>{number.format(day.posted)}</td>
-						<td>{number.format(day.impressions)}</td>
-						<td>{money.format(day.cost)}</td>
-					</tr>
-				{:else}
-					<tr><td colspan="8">まだ記録がありません</td></tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
+                <span class="tag warn">
+                  {number.format(day.reported)}
+                </span>
+              {/if}
+            </td>
+            <td>{number.format(day.userReads)}</td>
+            <td>{number.format(day.posted)}</td>
+            <td>{number.format(day.impressions)}</td>
+            <td>{money.format(day.cost)}</td>
+          </tr>
+        {:else}
+          <tr><td colspan="8">まだ記録がありません</td></tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 
-	<div><h4>ユーザーと権限</h4></div>
-	<div class="scroll-x">
-		<table>
-			<thead>
-				<tr>
-					<th scope="col">𝕏 ID</th>
-					<th scope="col">key</th>
-					<th scope="col">管理者</th>
-					<th scope="col"></th>
-				</tr>
-			</thead>
-			<tbody>
-				{#each data.users as user (user.userKey)}
-					<tr>
-						<td>{user.socialId}</td>
-						<td class="mono muted">{user.userKey.slice(0, 8)}…</td>
-						<td>
-							{#if user.fixed}
-								<!-- Named in the environment, so the app has no say in it. -->
-								<span class="tag">環境変数</span>
-							{:else}
-								<button
-									type="button"
-									class={`mini ${user.admin ? "danger" : "plain"}`}
-									disabled={saving !== undefined}
-									onclick={() => setAdmin(user.userKey, !user.admin)}
-								>
-									{#if saving === user.userKey}
-										<span class="spin"></span>
-									{/if}
-									{user.admin ? "解除" : "付与"}
-								</button>
-							{/if}
-						</td>
-						<td>
-							{#if !user.fixed}
-								<button
-									type="button"
-									class={`mini ${armed === user.userKey ? "danger" : "ghost"}`}
-									disabled={saving !== undefined}
-									onclick={(event) => remove(event, user)}
-								>
-									{#if saving === user.userKey}
-										<span class="spin"></span>
-									{/if}
-									{armed === user.userKey ? "本当に削除" : "削除"}
-								</button>
-							{/if}
-						</td>
-					</tr>
-				{:else}
-					<tr><td colspan="4">まだユーザーがいません</td></tr>
-				{/each}
-			</tbody>
-		</table>
-	</div>
+  <div><h4>ユーザーと権限</h4></div>
+  <div class="scroll-x">
+    <table>
+      <thead>
+        <tr>
+          <th scope="col">𝕏 ID</th>
+          <th scope="col">key</th>
+          <th scope="col">管理者</th>
+          <th scope="col"></th>
+        </tr>
+      </thead>
+      <tbody>
+        {#each data.users as user (user.userKey)}
+          <tr>
+            <td>{user.socialId}</td>
+            <td class="mono muted">{user.userKey.slice(0, 8)}…</td>
+            <td>
+              {#if user.fixed}
+                <!-- Named in the environment, so the app has no say in it. -->
+                <span class="tag">環境変数</span>
+              {:else}
+                <button
+                  type="button"
+                  class={`mini ${user.admin ? "danger" : "plain"}`}
+                  disabled={saving !== undefined}
+                  onclick={() => setAdmin(user.userKey, !user.admin)}
+                >
+                  {#if saving === user.userKey}
+                    <span class="spin"></span>
+                  {/if}
+                  {user.admin ? "解除" : "付与"}
+                </button>
+              {/if}
+            </td>
+            <td>
+              {#if !user.fixed}
+                <button
+                  type="button"
+                  class={`mini ${armed === user.userKey ? "danger" : "ghost"}`}
+                  disabled={saving !== undefined}
+                  onclick={(event) => remove(event, user)}
+                >
+                  {#if saving === user.userKey}
+                    <span class="spin"></span>
+                  {/if}
+                  {armed === user.userKey ? "本当に削除" : "削除"}
+                </button>
+              {/if}
+            </td>
+          </tr>
+        {:else}
+          <tr><td colspan="4">まだユーザーがいません</td></tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 </div>
 
 <style>
-.page {
-	padding: 1rem;
-}
-/* 見出しだけを置いた囲みなので、上下に余白は付けない */
-h4 {
-	margin: 0;
-	font-size: 1rem;
-	font-weight: 600;
-}
-/* 数字の並び。狭い画面では縦、640px から横に並べる */
-.metrics {
-	display: grid;
-	margin-bottom: 1rem;
-}
-.metric {
-	padding: 1rem 1.5rem;
-}
-.metric:not(:last-child) {
-	border-bottom: 1px dashed var(--ui-base-300);
-}
-@media (min-width: 640px) {
-	.metrics {
-		grid-auto-flow: column;
-	}
-	.metric:not(:last-child) {
-		border-right: 1px dashed var(--ui-base-300);
-		border-bottom: none;
-	}
-}
-.lab {
-	color: var(--ui-muted);
-	font-size: 0.75rem;
-	white-space: nowrap;
-}
-.val {
-	font-size: 2rem;
-	font-weight: 800;
-	line-height: 1.3;
-	white-space: nowrap;
-}
+  .page {
+    padding: 1rem;
+  }
+  /* 見出しだけを置いた囲みなので、上下に余白は付けない */
+  h4 {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  /* 数字の並び。狭い画面では縦、640px から横に並べる */
+  .metrics {
+    display: grid;
+    margin-bottom: 1rem;
+  }
+  .metric {
+    padding: 1rem 1.5rem;
+  }
+  .metric:not(:last-child) {
+    border-bottom: 1px dashed var(--ui-base-300);
+  }
+  @media (min-width: 640px) {
+    .metrics {
+      grid-auto-flow: column;
+    }
+    .metric:not(:last-child) {
+      border-right: 1px dashed var(--ui-base-300);
+      border-bottom: none;
+    }
+  }
+  .lab {
+    color: var(--ui-muted);
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  .val {
+    font-size: 2rem;
+    font-weight: 800;
+    line-height: 1.3;
+    white-space: nowrap;
+  }
 </style>

@@ -6,10 +6,10 @@ import type { RequestHandler } from "./$types";
 // hands you embeds whatever origin you copied it from -- so pull requests out
 // there still point at x.doany.io/images. The pictures moved; the URLs cannot.
 export const GET: RequestHandler = ({ params }) => {
-	// Another origin, so SvelteKit 3 needs the redirect marked as external.
-	redirect(
-		308,
-		`${LGTM_ORIGIN}/images/${encodeURIComponent(params.filename)}`,
-		{ external: true },
-	);
+  // Another origin, so SvelteKit 3 needs the redirect marked as external.
+  redirect(
+    308,
+    `${LGTM_ORIGIN}/images/${encodeURIComponent(params.filename)}`,
+    { external: true },
+  );
 };

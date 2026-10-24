@@ -1,0 +1,8 @@
+# 整形 (`bun fmt`。`package.json` の format・lint から呼ぶ)。書き方は既定のまま、外すものだけ
+[fmt]
+ignorePatterns = [
+  "static/",
+  # docker-publish.yml がイメージのタグを書き換えて ArgoCD が読む
+  "deploy/",
+  "renovate.json",
+]

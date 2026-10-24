@@ -15,13 +15,13 @@ export const SESSION_MAX_AGE = 1209600;
 const KEY_ATTEMPTS = 5;
 
 export async function generateUniqueKey(
-	exists: (key: string) => Promise<boolean>,
+  exists: (key: string) => Promise<boolean>,
 ): Promise<string> {
-	for (let i = 0; i < KEY_ATTEMPTS; i++) {
-		const key = crypto.randomUUID();
-		if (!(await exists(key))) return key;
-	}
-	throw new Error(
-		`Could not mint an unused session key in ${KEY_ATTEMPTS} attempts`,
-	);
+  for (let i = 0; i < KEY_ATTEMPTS; i++) {
+    const key = crypto.randomUUID();
+    if (!(await exists(key))) return key;
+  }
+  throw new Error(
+    `Could not mint an unused session key in ${KEY_ATTEMPTS} attempts`,
+  );
 }
