@@ -4,8 +4,8 @@
   import ErrorAlert from "#lib/components/ErrorAlert.svelte";
   import SignInButton from "#lib/components/SignInButton.svelte";
   import { setMessage } from "#lib/stores/toast.svelte.js";
-  import "@anyblades/blades/layered/content/code";
-  import "@anyblades/blades/layered/content/figure";
+  import "@anyblades/blades/content/code";
+  import "@anyblades/blades/content/figure";
 
   type Props = {
     message?: string;
