@@ -1,12 +1,11 @@
+# バックアップは VolSync が PVC ごとのスナップショットを取る(danything/gitops の
+# deploy/volsync/application.yaml)。SQLite は WAL なので、スナップショットから
+# 自分で立ち直る。
 apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: xool-db
   namespace: xool
-  annotations:
-    # **DB はファイルとして取らない。** Pod 側の k8up.io/backupcommand が
-    # 整合したコピーを標準出力に出しているので、そちらだけで足りる。
-    k8up.io/backup: "false"
 spec:
   accessModes:
     - ReadWriteOnce
