@@ -7,6 +7,13 @@ metadata:
   name: xool-db
   namespace: xool
 spec:
+  # 新しく作るときは VolSync が R2 の最新から中身を埋める(volsync.yaml の xool-db-dst)。今ある PVC には効かない
+  dataSourceRef:
+    {
+      apiGroup: volsync.backube,
+      kind: ReplicationDestination,
+      name: xool-db-dst,
+    }
   accessModes:
     - ReadWriteOnce
   storageClassName: local-path
