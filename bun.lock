@@ -5,7 +5,7 @@
     "": {
       "name": "xool",
       "devDependencies": {
-        "@anyblades/blades": "3.1.0-rc.1",
+        "@anyblades/blades": "^3.1.0",
         "@sveltejs/adapter-bun": "^1.0.0",
         "@sveltejs/kit": "^3.1.1",
         "@sveltejs/vite-plugin-svelte": "^7.3.1",
@@ -21,7 +21,7 @@
     },
   },
   "packages": {
-    "@anyblades/blades": ["@anyblades/blades@3.1.0-rc.1", "", {}, "sha512-AKQd0UDPbe7QQd50WTt9L3UBWj8Z5YwQNOt5SC+yLyDSDdHW+uCLx5vqQqHGgeGZnNyx4O2kcxGaXXKbftf5Ag=="],
+    "@anyblades/blades": ["@anyblades/blades@3.1.0", "", {}, "sha512-TgLYiS62+votTPUSGVm/0xId2tzkQ0AfLjJctfbdLLNbN/Yh9JaZcETSIwOYD52DDt9lGxjpv1hyEM7YcW1xrQ=="],
 
     "@jridgewell/gen-mapping": ["@jridgewell/gen-mapping@0.3.13", "", { "dependencies": { "@jridgewell/sourcemap-codec": "^1.5.0", "@jridgewell/trace-mapping": "^0.3.24" } }, "sha512-2kkt/7niJ6MgEPxF0bYdQ6etZaA+fQvDcLKckhy1yIQOzaoKjBBjSj63/aLVjYE3qhRt5dvM+uUyfCg6UKCBbA=="],
 
