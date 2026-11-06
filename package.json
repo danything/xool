@@ -9,7 +9,7 @@
     "@types/bun": "^1.4.4",
     "@types/node": "^26.6.6",
     "@typescript/native": "npm:typescript@7",
-    "oxlint": "^1.91.0",
+    "oxlint": "^1.92.0",
     "svelte": "^5.57.3",
     "svelte-check": "^4.7.8",
     "typescript": "~6.0.3",
